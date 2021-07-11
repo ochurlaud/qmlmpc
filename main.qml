@@ -18,71 +18,137 @@
  */
 
 import QtQuick 2.1
-import QtQuick.Window 2.0
+import QtQuick.Controls 2.15
 
 import "mpc"
 import "."
 import "widgets"
+import "mpc/mpd.js" as MPD
 
-Window {
+ApplicationWindow {
+    id: appwindow
     visible: true
-    width: Style.totalWidth
-    height: Style.totalHeight
+    property MpdSelectedSong selectedSong: selectedSong
 
-    Rectangle {
-        anchors.fill: parent
-        color: "black"
+    MpdSelectedSong {
+        id: selectedSong
+    }
 
-        MpdButton {
+    menuBar:  MenuBar {
+        //color: "black"
+
+        MenuBarItem {
             id: settingsButton
             text: "Settings"
-            active: false
-            onClicked: active = !active
-            height: Style.topRowHeight
+            onClicked: settingsView.open()
+        }
+        MenuBarItem {
+            text: "Now playing"
+            onClicked: mainStack.clear()
+        }
+        MenuBarItem {
+            id: playlistsButton
+            text: "Playlists"
+            onClicked: MPD.setActivePanel(MPD.playlistsPanel)
+        }
+        MenuBarItem {
+            id: collectionButton
+            text: "Collection"
+            onClicked: MPD.setActivePanel(MPD.collectionPanel)
+        }
+        MenuBarItem {
+            id: searchButton
+            text: "Search"
+
+            onClicked: MPD.setActivePanel(MPD.searchPanel)
+        }
+    }
+
+    header:  Row {
+
+        Button {
+            id: previous
+            icon.name:"media-skip-backward"
+            onClicked: mpdConnector.previous()
+        }
+        Button {
+            id: play
+            visible: !mpdConnector.playing
+            icon.name: "media-playback-start"
+            onClicked: mpdConnector.play()
+        }
+        Button {
+            id: pause
+            visible: mpdConnector.playing
+            icon.name: "media-playback-pause"
+            onClicked: mpdConnector.pause()
+        }
+        Button {
+            id: stop
+            icon.name: "media-playback-stop"
+            onClicked: mpdConnector.stop()
+        }
+        Button {
+            id: next
+            icon.name:"media-skip-forward"
+            onClicked: mpdConnector.next()
+        }
+        Button {
+            id: repeat
+            checked: mpdConnector.repeating
+            icon.name: "media-playlist-repeat"
+            onClicked: mpdConnector.repeat(!checked)
+        }
+        Button {
+            id: shuffle
+            checked: mpdConnector.shuffling
+            icon.name: "media-playlist-shuffle"
+            onClicked: mpdConnector.random(!checked)
         }
 
+    }
+
+    StackView {
+        id: mainStack
+        anchors.fill: parent
+
+        initialItem: MpdQueuePanel {
+            width: parent.width
+            height: parent.height
+        }
         MpdPanel {
-            width: parent.width
-            height: parent.height - settingsButton.height
-            y: settingsButton.height
-            visible: !settingsButton.active
+            id: mpdpanel
         }
+    }
+    Popup {
+        id: settingsView
 
-        Rectangle {
-            width: parent.width
-            height: parent.height - settingsButton.height
-            y: settingsButton.height
-            visible: settingsButton.active
-            onVisibleChanged: resetSettings()
-            color: "black"
+        Grid {
+            id: settingsGrid
+            anchors { centerIn: parent }
+            columns: 2
+            spacing: 3
 
-            Grid {
-                id: settingsGrid
-                anchors { centerIn: parent }
-                columns: 2
-                spacing: 5
-
-                MpdText {
-                    width: 100
-                    height: 30
-                    text: "Connection settings to MPD server"
-                    font.pointSize: 16
-                }
-                Item{ width: 1; height: 1 }
-                MpdText { width: 100; height: 30; text: "Host" }
-                TddTextInput { id: mpdHost; width: 500 }
-                MpdText { width: 100; height: 30; text: "Port" }
-                TddTextInput { id: mpdPort; width: 500 }
-                MpdText { width: 100; height: 30; text: "Password" }
-                TddTextInput { id: mpdPassword; width: 500; textInput.echoMode: TextInput.Password }
-                MpdButton {
-                    text: "Save changes"
-                    onClicked: saveSettings()
-                }
-                MpdButton {
-                    text: "Discard changes"
-                    onClicked: resetSettings()
-                }
+            Label {
+                width: 100
+                height: 30
+                text: "Connection settings to MPD server"
+                font.pointSize: 16
+            }
+            Item{ width: 1; height: 1 }
+            Label { width: 100; height: 30; text: "Host" }
+            TextInput { id: mpdHost; width: 500; text: settings.value("mpd/host") ; }
+            Label { width: 100; height: 30; text: "Port" }
+            TextInput { id: mpdPort; width: 500; text: settings.value("mpd/port"); }
+            Label { width: 100; height: 30; text: "Password" }
+            TextInput { id: mpdPassword; width: 500; echoMode: TextInput.Password; text: settings.value("mpd/password") ;}
+            Button {
+                text: "Save changes"
+                onClicked: saveSettings()
+            }
+            Button {
+                text: "Discard changes"
+                onClicked: discardSettings()
             }
         }
     }
@@ -92,10 +158,16 @@ Window {
         mpdPort.text = settings.value("mpd/port")
         mpdPassword.text = settings.value("mpd/password")
     }
+
+    function discardSettings() {
+        settingsView.close()
+    }
+
     function saveSettings() {
         settings.setValue("mpd/host", mpdHost.text)
         settings.setValue("mpd/port", mpdPort.text)
         settings.setValue("mpd/password", mpdPassword.text)
         mpdConnector.connection.reconnect(mpdHost.text, Number(mpdPort.text), mpdPassword.text)
+        settingsView.close()
     }
 }

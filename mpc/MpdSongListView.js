@@ -21,7 +21,7 @@ var selectedIndices = []
 
 function updateSelectedIndices() {
     if (multiSelect) {
-        selectedIndices = new Array()
+        selectedIndices = []
         selectedIndices[count] = 1
     } else {
         selectedIndices = undefined

@@ -29,7 +29,7 @@ QtObject {
     property real last4ColumnsWidth: 108
 
     property real totalWidth: 1280
-    property real totalHeight: 800-25 // 25 pixels reserved for android notification bar topRowHeight+8*rowHeight
+    property real totalHeight: 600-25 // 25 pixels reserved for android notification bar topRowHeight+8*rowHeight
 
     // styles
     property color mpdButtonColor: "#444"

@@ -30,7 +30,11 @@ int main(int argc, char *argv[])
 
     Settings *settings = new Settings(&app);
 
-    MpdConnector *mpdConnector = new MpdConnector(settings->value("mpd/host").toString(), settings->value("mpd/port").toInt(), settings->value("mpd/password").toString());
+    MpdConnector *mpdConnector = new MpdConnector(
+                settings->value("mpd/host").toString(),
+                settings->value("mpd/port").toInt(),
+                settings->value("mpd/password").toString()
+                );
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("mpdConnector", mpdConnector);

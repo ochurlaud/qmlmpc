@@ -110,6 +110,7 @@ MpdDirectory::MpdDirectory(QString data)
     }
     if (data.indexOf('\n')!=-1) {
         qDebug("directory data contains more than one line, ignoring all but the first line");
+        qDebug(data.toLatin1());
         data = data.section('\n', 0, 0);
     }
     m_path = data.mid(11);
@@ -140,16 +141,20 @@ QList<QSharedPointer<MpdEntity> > MpdEntityListParser::feedData(QByteArray data)
             QString entityData = QString::fromUtf8(buffer+lastIndex, i-lastIndex);
             lastIndex = i+1; // skip the \n (i++; lastIndex=i)
             MpdEntity *entity = 0;
-            if (entityData.startsWith("file: "))
+            if (entityData.startsWith("file: ")) {
                 entity = new MpdSong(entityData);
-            else if (entityData.startsWith("directory: "))
+            } else if (entityData.startsWith("directory: ")) {
+                qDebug( entityData.toLatin1());
                 entity = new MpdDirectory(entityData);
-            else if (entityData.startsWith("playlist: "))
+            } else if (entityData.startsWith("playlist: ")) {
                 entity = new MpdPlaylist(entityData);
-            else
+            } else {
                 qDebug("Could not create entity from data '%s'", qPrintable(entityData));
-            if (entity)
+            }
+
+            if (entity) {
                 entities.append(QSharedPointer<MpdEntity>(entity));
+            }
         }
     }
     m_buffer = m_buffer.mid(lastIndex);

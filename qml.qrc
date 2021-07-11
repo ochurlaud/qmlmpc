@@ -36,7 +36,9 @@
         <file>mpc/MpdOverviewPanel.qml</file>
         <file>mpc/MpdPanel.qml</file>
         <file>mpc/MpdPlaylistsPanel.qml</file>
+        <file>mpc/MpdQueuePanel.qml</file>
         <file>mpc/MpdSearchPanel.qml</file>
+        <file>mpc/MpdSelectedSong.qml</file>
         <file>mpc/MpdSongListView.js</file>
         <file>mpc/MpdSongListView.qml</file>
         <file>mpc/MpdText.qml</file>

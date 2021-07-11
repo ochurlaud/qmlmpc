@@ -26,7 +26,6 @@ import "mpd.js" as MPD
 Rectangle {
     width: 4*Style.first8ColumnsWidth+4*Style.last4ColumnsWidth
     height: 7*Style.rowHeight
-    color: "black"
 
     property string selectedPlaylist
     property alias selectedPath: playlistSongsView.selectedPath

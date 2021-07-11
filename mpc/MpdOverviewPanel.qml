@@ -27,16 +27,13 @@ Rectangle {
     height: 7*Style.rowHeight
     color: "black"
 
-    property int selectedSongId: -1
-    property bool songSelected: selectedSongId!==-1
-    property string selectedSongTitle
-    property string selectedSongArtist
-    property string selectedSongAlbum
-    property int selectedSongDuration
-
     Connections {
         target: mpdConnector.queueModel
-        onModelReset: if (selectedSongId != -1 && !mpdConnector.queueModel.containsId(selectedSongId)) selectedSongId = -1
+        function onModelReset() {
+            if (appwindow.selectedSong.id != -1 && !mpdConnector.queueModel.containsId(appwindow.selectedSong.id)) {
+                appwindow.selectedSong.id = -1
+            }
+        }
     }
 
     Column {
@@ -78,28 +75,28 @@ Rectangle {
                 Text {
                     id: titleContent
                     width: parent.width
-                    text: songSelected?selectedSongTitle:"-"
+                    text: appwindow.selectedSong.songSelected?appwindow.selectedSong.title:"-"
                     wrapMode: Text.WordWrap
                     color: "white"
                 }
                 Text {
                     id: artistContent
                     width: parent.width
-                    text: songSelected?selectedSongArtist:"-"
+                    text: appwindow.selectedSong.songSelected?appwindow.selectedSong.artist:"-"
                     wrapMode: Text.WordWrap
                     color: "white"
                 }
                 Text {
                     id: albumContent
                     width: parent.width
-                    text: songSelected?selectedSongAlbum:"-"
+                    text: appwindow.selectedSong.songSelected?appwindow.selectedSong.album:"-"
                     wrapMode: Text.WordWrap
                     color: "white"
                 }
                 Text {
                     id: lengthContent
                     width: parent.width
-                    text: songSelected?MPD.formatSeconds(selectedSongDuration):"-:--"
+                    text: appwindow.selectedSong.songSelected?MPD.formatSeconds(appwindow.selectedSong.duration):"-:--"
                     wrapMode: Text.WordWrap
                     color: "white"
                 }
@@ -110,15 +107,15 @@ Rectangle {
                 width: 2*Style.first8ColumnsWidth
                 text: "Play now"
                 image: "images/play-small.png"
-                enabled: songSelected
-                onClicked: mpdConnector.playSong(selectedSongId)
+                enabled: appwindow.selectedSong.songSelected
+                onClicked: mpdConnector.playSong(appwindow.selectedSong.id)
             }
             MpdButton {
                 width: 2*Style.first8ColumnsWidth
                 text: "Remove from playlist"
                 image: "images/remove.png"
-                enabled: songSelected
-                onClicked: mpdConnector.removeSong(selectedSongId)
+                enabled: appwindow.selectedSong.songSelected
+                onClicked: mpdConnector.removeSong(appwindow.selectedSong.id)
             }
         }
         MpdText{
@@ -145,7 +142,7 @@ Rectangle {
                 image: "images/save.png"
                 onClicked: onConfirmed("")
                 function onConfirmed(text) { // called when prompt --v is confirmed
-                    if (text == "")
+                    if (text === "")
                         return prompt("Enter a name for this playlist:", saveButton)
                     mpdConnector.savePlaylist(text)
                 }
@@ -170,15 +167,15 @@ Rectangle {
                 width: 2*Style.last4ColumnsWidth
                 text: "Up"
                 image: "images/arrow-up.png"
-                enabled: songSelected
-                onClicked: mpdConnector.moveSongUp(selectedSongId)
+                enabled: appwindow.selectedSong.songSelected
+                onClicked: mpdConnector.moveSongUp(appwindow.selectedSong.id)
             }
             MpdButton {
                 width: 2*Style.last4ColumnsWidth
                 text: "Down"
                 image: "images/arrow-down.png"
-                enabled: songSelected
-                onClicked: mpdConnector.moveSongDown(selectedSongId)
+                enabled: appwindow.selectedSong.songSelected
+                onClicked: mpdConnector.moveSongDown(appwindow.selectedSong.id)
             }
         }
         Row {
@@ -186,22 +183,22 @@ Rectangle {
                 width: 2*Style.last4ColumnsWidth
                 text: "To top"
                 image: "images/arrow-top.png"
-                enabled: songSelected
-                onClicked: mpdConnector.moveSongFirst(selectedSongId)
+                enabled: appwindow.selectedSong.songSelected
+                onClicked: mpdConnector.moveSongFirst(appwindow.selectedSong.id)
             }
             MpdButton {
                 width: 2*Style.last4ColumnsWidth
                 text: "To bottom"
                 image: "images/arrow-bottom.png"
-                enabled: songSelected
-                onClicked: mpdConnector.moveSongLast(selectedSongId)
+                enabled: appwindow.selectedSong.songSelected
+                onClicked: mpdConnector.moveSongLast(appwindow.selectedSong.id)
             }
         }
         MpdButton {
             width: 2*Style.last4ColumnsWidth
             text: "After currently playing song"
-            enabled: songSelected && mpdConnector.currentSongId!==-1
-            onClicked: mpdConnector.moveSongAfterCurrent(selectedSongId)
+            enabled: appwindow.selectedSong.songSelected && mpdConnector.currentSongId!==-1
+            onClicked: mpdConnector.moveSongAfterCurrent(appwindow.selectedSong.id)
         }
     }
 }

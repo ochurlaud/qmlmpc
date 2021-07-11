@@ -28,9 +28,9 @@ MpdEntityListModel::MpdEntityListModel(QObject *parent) :
 
 void MpdEntityListModel::setEntityList(MpdEntityList list)
 {
-    emit beginResetModel();
+    beginResetModel();
     m_list = list;
-    emit endResetModel();
+    endResetModel();
 }
 
 int MpdEntityListModel::rowCount(const QModelIndex &parent) const
@@ -74,9 +74,9 @@ MpdSongListModel::MpdSongListModel(QObject *parent) :
 
 void MpdSongListModel::setSongList(MpdSongList list)
 {
-    emit beginResetModel();
+    beginResetModel();
     m_list = list;
-    emit endResetModel();
+    endResetModel();
 }
 
 QVariant MpdSongListModel::getData(int index, QString roleName) const
@@ -130,7 +130,7 @@ MpdCollectionModel::MpdCollectionModel(QObject *parent) :
 
 void MpdCollectionModel::setEntityList(MpdEntityList list)
 {
-    emit beginResetModel();
+    beginResetModel();
     m_list = MpdEntityList();
     m_selectedIndices.clear();
     for (int i=0; i<list.length(); i++) {
@@ -140,7 +140,7 @@ void MpdCollectionModel::setEntityList(MpdEntityList list)
             m_selectedIndices.append(false);
         }
     }
-    emit endResetModel();
+    endResetModel();
     emit selectionChanged();
 }
 

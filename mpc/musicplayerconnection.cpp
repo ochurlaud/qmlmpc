@@ -286,6 +286,7 @@ void MusicPlayerConnection::reconnect(QString host, int port, QString password)
     m_host = host;
     m_port = port;
     m_password = password;
+    qDebug() << host << port;
     p_socket->connectToHost(host, port);
 }
 

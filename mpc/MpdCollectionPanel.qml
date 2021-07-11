@@ -26,7 +26,6 @@ import "mpd.js" as MPD
 Rectangle {
     width: 4*Style.first8ColumnsWidth+4*Style.last4ColumnsWidth
     height: 7*Style.rowHeight
-    color: "black"
 
     property int numSelectedSongs: mpdConnector.collectionModel.numSelectedSongs
     property int numSelectedDirs: mpdConnector.collectionModel.numSelectedDirectories
@@ -66,7 +65,9 @@ Rectangle {
                     property bool selected: mpdConnector.collectionModel.isSelected(index)
                     Connections {
                         target:mpdConnector.collectionModel
-                        onSelectionChanged: selected = mpdConnector.collectionModel.isSelected(index)
+                        function onSelectionChanged(index) { 
+                            selected = mpdConnector.collectionModel.isSelected(index)
+                        }
                     }
                     Image {
                         anchors.verticalCenter: parent.verticalCenter

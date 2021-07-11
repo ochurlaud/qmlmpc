@@ -89,6 +89,7 @@ public:
 private:
     MpdSongList m_list;
     QHash<int, QByteArray> p_roles;
+    QString m_filter;
 };
 
 #endif // DATAMODELS_H
