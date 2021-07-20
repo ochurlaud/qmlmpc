@@ -29,7 +29,6 @@ Rectangle {
     height: 8*Style.rowHeight
     //color: "black"
 
-    property int activePanel: MPD.overviewPanel
 
     Rectangle {
         anchors.fill: parent
@@ -66,10 +65,7 @@ Rectangle {
 
             }*/
 
-            MpdOverviewPanel {
-                id: overviewPanel
-                visible: true //activePanel === MPD.overviewPanel
-            }
+
             /*MpdPlaylistsPanel {
                 id: playlistsPanel
                 visible: true //activePanel === MPD.playlistsPanel
@@ -140,7 +136,7 @@ Rectangle {
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
             }
-            TddTextInput {
+            TextField {
                 id: messagePrompt
                 width: messageLabel.width
                 anchors.horizontalCenter: parent.horizontalCenter

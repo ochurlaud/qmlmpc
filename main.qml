@@ -19,6 +19,7 @@
 
 import QtQuick 2.1
 import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.12
 
 import "mpc"
 import "."
@@ -28,33 +29,68 @@ import "mpc/mpd.js" as MPD
 ApplicationWindow {
     id: appwindow
     visible: true
+
     property MpdSelectedSong selectedSong: selectedSong
+    property string toolbarTitle: "QMLMPC"
 
     MpdSelectedSong {
         id: selectedSong
     }
-
-    menuBar:  MenuBar {
-        //color: "black"
-
-        MenuBarItem {
-            id: settingsButton
-            text: "Settings"
-            onClicked: settingsView.open()
+    menuBar: ToolBar {
+        contentHeight: toolButton1.implicitHeight
+        Label {
+            text: appwindow.toolbarTitle
+            anchors.centerIn: parent
         }
-        MenuBarItem {
+        ToolButton {
+            id: toolButton1
+            text: "\u2630"
+            font.pixelSize: Qt.application.font.pixelSize * 1.6
+            onClicked: drawer.open()
+        }
+    }
+
+    Drawer {
+        id: drawer
+        height: appwindow.height
+        width: appwindow.height * 0.6
+        Column {
+            anchors.fill: parent
+            ItemDelegate {
+                width: parent.width
+                text: qsTr("Browse collection")
+                onClicked: {
+                    mainStack.push(collectionpanel)
+                    drawer.close()
+                }
+            }
+            ItemDelegate {
+                width: parent.width
+                text: qsTr("Queue")
+                onClicked: {
+                    mainStack.pop(queuePanel)
+                    drawer.close()
+                }
+            }
+            ItemDelegate {
+                width: parent.width
+                text: qsTr("Settings")
+                onClicked: {
+                    mainStack.push(settingsView)
+                    drawer.close()
+                }
+            }
+        }
+    }
+
+/*        MenuBarItem {
             text: "Now playing"
-            onClicked: mainStack.clear()
+            onClicked: mainStack.push(overviewpanel)
         }
         MenuBarItem {
             id: playlistsButton
             text: "Playlists"
-            onClicked: MPD.setActivePanel(MPD.playlistsPanel)
-        }
-        MenuBarItem {
-            id: collectionButton
-            text: "Collection"
-            onClicked: MPD.setActivePanel(MPD.collectionPanel)
+            //onClicked: MPD.(MPD.playlistsPanel)
         }
         MenuBarItem {
             id: searchButton
@@ -63,8 +99,8 @@ ApplicationWindow {
             onClicked: MPD.setActivePanel(MPD.searchPanel)
         }
     }
-
-    header:  Row {
+*/
+    footer:  Row {
 
         Button {
             id: previous
@@ -112,43 +148,62 @@ ApplicationWindow {
         id: mainStack
         anchors.fill: parent
 
-        initialItem: MpdQueuePanel {
-            width: parent.width
-            height: parent.height
-        }
-        MpdPanel {
-            id: mpdpanel
-        }
+        initialItem: queuePanel
     }
-    Popup {
+    MpdQueuePanel {
+        id: queuePanel
+        visible: false
+    }
+
+    Pane {
+        id: overviewpanel
+        visible: false
+    }
+
+    MpdPanel {
+        id: mpdpanel
+        visible: false
+    }
+    MpdCollectionPanel {
+        id: collectionpanel
+        visible: false
+    }
+
+    Pane {
         id: settingsView
+        visible: false
+        anchors.fill: parent
+        Column {
+            anchors.fill: parent
+            spacing: 20
 
-        Grid {
-            id: settingsGrid
-            anchors { centerIn: parent }
-            columns: 2
-            spacing: 3
+            GridLayout {
 
-            Label {
-                width: 100
-                height: 30
-                text: "Connection settings to MPD server"
-                font.pointSize: 16
+                id: settingsGrid
+                columns: 2
+                //spacing: 3
+                Label {
+                    Layout.fillHeight: true; Layout.columnSpan: 2
+                    text: "Connection settings to MPD server"
+                    font.pointSize: 16
+                }
+                Label { text: "Host" }
+                TextField { id: mpdHost; text: settings.value("mpd/host") ; }
+                Label { text: "Port" }
+                TextField { id: mpdPort; text: settings.value("mpd/port"); }
+                Label { text: "Password" }
+                TextField { id: mpdPassword; echoMode: TextInput.Password; text: settings.value("mpd/password") ;}
             }
-            Item{ width: 1; height: 1 }
-            Label { width: 100; height: 30; text: "Host" }
-            TextInput { id: mpdHost; width: 500; text: settings.value("mpd/host") ; }
-            Label { width: 100; height: 30; text: "Port" }
-            TextInput { id: mpdPort; width: 500; text: settings.value("mpd/port"); }
-            Label { width: 100; height: 30; text: "Password" }
-            TextInput { id: mpdPassword; width: 500; echoMode: TextInput.Password; text: settings.value("mpd/password") ;}
-            Button {
-                text: "Save changes"
-                onClicked: saveSettings()
-            }
-            Button {
-                text: "Discard changes"
-                onClicked: discardSettings()
+            Row {
+                spacing: 20
+                Button {
+                    text: "Save changes"
+                    onClicked: saveSettings()
+                }
+                Button {
+                    text: "Discard changes"
+                    onClicked: discardSettings()
+                }
             }
         }
     }

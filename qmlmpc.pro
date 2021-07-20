@@ -1,6 +1,10 @@
 TEMPLATE = app
 
-QT += qml quick
+QT += qml
+QT += quick
+QT += quickcontrols2
+
+DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x050F00
 
 SOURCES += main.cpp \
     mpc/datamodels.cpp \

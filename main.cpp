@@ -20,6 +20,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QQuickStyle>
 
 #include "settings.h"
 #include "mpc/mpdconnector.h"
@@ -35,6 +36,8 @@ int main(int argc, char *argv[])
                 settings->value("mpd/port").toInt(),
                 settings->value("mpd/password").toString()
                 );
+
+    QQuickStyle::setStyle("Material");
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("mpdConnector", mpdConnector);

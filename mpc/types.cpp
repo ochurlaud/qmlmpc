@@ -21,15 +21,15 @@
 
 #include <QStringList>
 
-QHash<QString,QString> MPD::parseData(QString data)
+QMultiHash<QString,QString> MPD::parseData(QString data)
 {
-    QHash<QString,QString> hash;
+    QMultiHash<QString,QString> hash;
     QString tmp;
     int i;
     foreach (tmp, data.split("\n")) {
         i = tmp.indexOf(": ");
         if (i!=-1)
-            hash.insertMulti(tmp.left(i).toLower(), tmp.mid(i+2));
+            hash.insert(tmp.left(i).toLower(), tmp.mid(i+2));
     }
     return hash;
 }
@@ -37,7 +37,7 @@ QHash<QString,QString> MPD::parseData(QString data)
 
 MpdStatus::MpdStatus(QString data)
 {
-    QHash<QString,QString> hash = MPD::parseData(data);
+    QMultiHash<QString,QString> hash = MPD::parseData(data);
     m_repeat = hash.value("repeat") == "1";
     m_random = hash.value("random") == "1";
     m_playlistVersion = hash.value("playlist", "-1").toUInt();
@@ -85,7 +85,7 @@ MpdSong::MpdSong(QString data)
         qDebug("Can not create a song with data not starting with 'file: '");
         return;
     }
-    QHash<QString,QString> hash = MPD::parseData(data);
+    QMultiHash<QString,QString> hash = MPD::parseData(data);
     m_path = hash.value("file");
     m_title = hash.value("title");
     m_artist = hash.value("artist");
@@ -110,7 +110,6 @@ MpdDirectory::MpdDirectory(QString data)
     }
     if (data.indexOf('\n')!=-1) {
         qDebug("directory data contains more than one line, ignoring all but the first line");
-        qDebug(data.toLatin1());
         data = data.section('\n', 0, 0);
     }
     m_path = data.mid(11);
@@ -144,7 +143,6 @@ QList<QSharedPointer<MpdEntity> > MpdEntityListParser::feedData(QByteArray data)
             if (entityData.startsWith("file: ")) {
                 entity = new MpdSong(entityData);
             } else if (entityData.startsWith("directory: ")) {
-                qDebug( entityData.toLatin1());
                 entity = new MpdDirectory(entityData);
             } else if (entityData.startsWith("playlist: ")) {
                 entity = new MpdPlaylist(entityData);

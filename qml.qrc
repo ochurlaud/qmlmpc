@@ -33,7 +33,6 @@
         <file>mpc/mpd.js</file>
         <file>mpc/MpdButton.qml</file>
         <file>mpc/MpdCollectionPanel.qml</file>
-        <file>mpc/MpdOverviewPanel.qml</file>
         <file>mpc/MpdPanel.qml</file>
         <file>mpc/MpdPlaylistsPanel.qml</file>
         <file>mpc/MpdQueuePanel.qml</file>
@@ -43,7 +42,6 @@
         <file>mpc/MpdSongListView.qml</file>
         <file>mpc/MpdText.qml</file>
         <file>widgets/TddListView.qml</file>
-        <file>widgets/TddTextInput.qml</file>
         <file>Style.qml</file>
         <file>qmldir</file>
     </qresource>

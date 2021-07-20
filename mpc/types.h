@@ -26,7 +26,7 @@
 #include <QSharedPointer>
 
 namespace MPD {
-QHash<QString, QString> parseData(QString data);
+QMultiHash<QString, QString> parseData(QString data);
 }
 
 class MpdStatus

@@ -25,11 +25,12 @@ import "../widgets"
 import "mpd.js" as MPD
 
 
-Rectangle {
+Pane {
     Column {
 
         id: queueColumn
         width: parent.width
+        anchors.fill: parent
 
         Item {
             id: progressBar
@@ -37,20 +38,20 @@ Rectangle {
             height: Style.rowHeight/2
             Rectangle {
                 anchors { fill: parent; margins: 1 }
-                color: "#999"
+                color: Material.primary
                 radius: 4
                 clip: true
                 Rectangle {
                     anchors { left: parent.left; top: parent.top; bottom: parent.bottom}
                     radius: Math.min(4, width/2)
-                    color: "black"
+           //         color: "black"
                     width: mpdConnector.elapsedTime/mpdConnector.totalTime*parent.width
                     Rectangle {
                         x: 1
                         y: 1
                         width: Math.max(0, parent.width-2)
                         height: parent.height-2
-                        color: "#444"
+                        color: Material.accent
                         radius: Math.max(0, parent.radius-1)
                     }
                 }
@@ -62,14 +63,16 @@ Rectangle {
             Text {
                 anchors.centerIn: parent
                 text: MPD.formatSeconds(mpdConnector.elapsedTime)+" / "+MPD.formatSeconds(mpdConnector.totalTime)
-                color: "white"
+                color: Material.foreground
             }
         }
 
-        Rectangle { 
+
+        ScrollView {
             width: parent.width
-            height: 5.5*Style.rowHeight
-            TddListView {
+            height: parent.height - progressBar.height - buttonrow.height
+            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+            ListView {
                 id: queueView
                 anchors.fill: parent
                 model: mpdConnector.queueModel
@@ -85,10 +88,10 @@ Rectangle {
                     }
                 }
                 delegate: Rectangle {
-                    width: parent.width
+                    width: queueView.width
                     height: Style.rowHeight/2
                     // color: steelblue if selected, else alternating row colors
-                    color: songId===appwindow.appwindow.selectedSong.id ? "steelblue" : (index%2?"white":"#ddd")
+                    color:  ListView.isCurrentItem ? Material.accentColor : (index %2 ? "white" : "#ddd")
                     Image {
                         id: img
                         source: "images/play-mini.png"
@@ -104,15 +107,40 @@ Rectangle {
                     }
                     MouseArea {
                         anchors.fill: parent
-                        onClicked: {
-                            appwindow.selectedSong.id = songId
-                            appwindow.selectedSong.title = title
-                            appwindow.selectedSong.album = album
-                            appwindow.selectedSong.artist = artist
-                            appwindow.selectedSong.duration = duration
-                            queueView.currentIndex = index
-                        }
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
                         onDoubleClicked: mpdConnector.playSong(songId)
+                        onClicked: {
+                            queueView.currentIndex = index
+                            if (mouse.button === Qt.RightButton) {
+                                contextMenu.popup()
+                            }
+                        }
+                        onPressAndHold: {
+                            queueView.currentIndex = index
+                            if (mouse.source === Qt.MouseEventNotSynthesized) {
+                                contextMenu.popup()
+                            }
+                        }
+                        Menu {
+                             id: contextMenu
+
+                             MenuItem {
+                                 text: qsTr("Play next")
+                                 onTriggered: mpdConnector.moveSongAfterCurrent(songId)
+                             }
+                             MenuItem {
+                                 text: qsTr("Move first")
+                                 onTriggered: mpdConnector.moveSongFirst(songId)
+                             }
+                             MenuItem {
+                                 text: qsTr("Move last")
+                                 onTriggered: mpdConnector.moveSongLast(songId)
+                             }
+                             MenuItem {
+                                 text: qsTr("Remove from playlist")
+                                 onTriggered: mpdConnector.removeSong(songId)
+                             }
+                         }
                     }
                 }
             }
@@ -125,6 +153,7 @@ Rectangle {
         }*/
 
         Row {
+            id: buttonrow
             Button {
                 text: "Scroll to current song"
                 onClicked: queueView.positionViewAtIndex(mpdConnector.currentSongPos, ListView.Visible)
