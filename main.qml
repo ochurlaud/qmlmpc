@@ -48,12 +48,19 @@ ApplicationWindow {
             font.pixelSize: Qt.application.font.pixelSize * 1.6
             onClicked: drawer.open()
         }
+        ToolButton {
+            id: search
+            anchors.right: parent.right
+            text: "\uD83D\uDD0D"
+            font.pixelSize: Qt.application.font.pixelSize * 1.6
+            onClicked: mainStack.push(searchpanel)
+        }
     }
 
     Drawer {
         id: drawer
         height: appwindow.height
-        width: appwindow.height * 0.6
+        width: appwindow.width * 0.66
         Column {
             anchors.fill: parent
             ItemDelegate {
@@ -83,23 +90,6 @@ ApplicationWindow {
         }
     }
 
-/*        MenuBarItem {
-            text: "Now playing"
-            onClicked: mainStack.push(overviewpanel)
-        }
-        MenuBarItem {
-            id: playlistsButton
-            text: "Playlists"
-            //onClicked: MPD.(MPD.playlistsPanel)
-        }
-        MenuBarItem {
-            id: searchButton
-            text: "Search"
-
-            onClicked: MPD.setActivePanel(MPD.searchPanel)
-        }
-    }
-*/
     footer:  Row {
 
         Button {

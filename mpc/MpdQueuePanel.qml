@@ -87,7 +87,7 @@ Pane {
                         if (i!==-1) queueView.currentIndex = i
                     }
                 }
-                delegate: Rectangle {
+                delegate: Rectangle { // ItemDelegate ??
                     width: queueView.width
                     height: Style.rowHeight/2
                     // color: steelblue if selected, else alternating row colors
