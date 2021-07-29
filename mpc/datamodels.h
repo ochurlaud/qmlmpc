@@ -78,7 +78,7 @@ public:
     MpdSongListModel(QObject *parent);
 
     void setSongList(MpdSongList list);
-    Q_INVOKABLE bool containsId(int songId) { return !m_list.getSongById(songId).isNull(); }
+    Q_INVOKABLE bool containsId(int songId) { return m_list.getSongById(songId) != nullptr; }
     Q_INVOKABLE int getSongIndex(int songId) { return m_list.getSongIndex(songId); }
     Q_INVOKABLE QVariant getData(int index, QString roleName) const;
 

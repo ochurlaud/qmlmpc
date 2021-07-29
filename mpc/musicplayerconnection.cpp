@@ -23,6 +23,8 @@
 #include <QTimer>
 #include <QStringList>
 
+#include "mpdrequest.h"
+
 MusicPlayerConnection::MusicPlayerConnection(QString host, int port, QString password, QObject *parent) :
     QObject(parent),
     p_waitingRequest(0),
@@ -36,7 +38,7 @@ MusicPlayerConnection::MusicPlayerConnection(QString host, int port, QString pas
     connect(p_socket, SIGNAL(readyRead()), this, SLOT(dataReady()));
     connect(p_socket, SIGNAL(connected()), SLOT(onConnected()));
     connect(p_socket, SIGNAL(disconnected()), SLOT(onDisconnected()));
-    connect(p_socket, SIGNAL(error(QAbstractSocket::SocketError)), SLOT(onSocketError(QAbstractSocket::SocketError)));
+    connect(p_socket, SIGNAL(errorOccurred(QAbstractSocket::SocketError)), SLOT(onSocketError(QAbstractSocket::SocketError)));
 
     p_timer = new QTimer(this);
     connect(p_timer, SIGNAL(timeout()), this, SLOT(renewStatus()));
@@ -50,60 +52,62 @@ MusicPlayerConnection::MusicPlayerConnection(QString host, int port, QString pas
     p_socket->connectToHost(host, port);
 }
 
-MpdStatusRequest *MusicPlayerConnection::getStatus()
+MpdRequest *MusicPlayerConnection::request(const QString &mpdCommand)
 {
-    MpdStatusRequest *request = new MpdStatusRequest("status");
+    if (mpdCommand != "status") {
+        qDebug() << "MPD Command:" << mpdCommand;
+    }
+    MpdRequest *request = new MpdRequest(mpdCommand);
     enqueueRequest(request);
     return request;
+}
+
+MpdRequest *MusicPlayerConnection::getStatus()
+{
+    QString mpdCommand = QStringLiteral("status");
+    return this->request(mpdCommand);
 }
 
 MpdRequest *MusicPlayerConnection::play()
 {
-    MpdRequest *request = new MpdRequest("play");
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("play");
+    return this->request(mpdCommand);
 }
 
 MpdRequest *MusicPlayerConnection::pause()
 {
-    MpdRequest *request = new MpdRequest("pause");
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("pause");
+    return this->request(mpdCommand);
 }
 
 MpdRequest *MusicPlayerConnection::stop()
 {
-    MpdRequest *request = new MpdRequest("stop");
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("stop");
+    return this->request(mpdCommand);
 }
 
 MpdRequest *MusicPlayerConnection::next()
 {
-    MpdRequest *request = new MpdRequest("next");
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("next");
+    return this->request(mpdCommand);
 }
 
 MpdRequest *MusicPlayerConnection::previous()
 {
-    MpdRequest *request = new MpdRequest("previous");
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("previous");
+    return this->request(mpdCommand);
 }
 
 MpdRequest *MusicPlayerConnection::repeat(bool repeat)
 {
-    MpdRequest *request = new MpdRequest(repeat?"repeat 1":"repeat 0");
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("repeat %1").arg(repeat ? 1 : 0);
+    return this->request(mpdCommand);
 }
 
 MpdRequest *MusicPlayerConnection::random(bool random)
 {
-    MpdRequest *request = new MpdRequest(random?"random 1":"random 0");
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("random %1").arg(random ? 1 : 0);
+    return this->request(mpdCommand);
 }
 
 MpdRequest *MusicPlayerConnection::move(MpdSong *song, MoveDirection direction)
@@ -114,154 +118,154 @@ MpdRequest *MusicPlayerConnection::move(MpdSong *song, MoveDirection direction)
         pos = 0;
         break;
     case MoveToLast:
-        pos = p_status->playlistLength()-1;
+        pos = p_status->playlistLength() - 1;
         break;
     case MoveAfterCurrent:
         pos = p_status->currentSongPos();
-        if (pos!=-1 && pos<song->getPlaylistPosition()) pos ++;
+        if (pos != -1 && pos < song->getPlaylistPosition()) {
+            pos ++;
+        }
         break;
     case MoveOneUp:
-        pos = qMax(0, song->getPlaylistPosition()-1);
+        pos = qMax(0, song->getPlaylistPosition() - 1);
         break;
     case MoveOneDown:
-        pos = qMin(song->getPlaylistPosition()+1, p_status->playlistLength()-1);
+        pos = qMin(song->getPlaylistPosition() + 1, p_status->playlistLength() - 1);
         break;
     }
-    if (pos<0)
+    if (pos < 0) {
         return 0;
-    MpdRequest *request = new MpdRequest(QString("moveid \"%1\" \"%2\"").arg(song->getPlaylistId()).arg(pos));
-    enqueueRequest(request);
-    return request;
+    }
+    QString mpdCommand = QStringLiteral("moveid \"%1\" \"%2\"").arg(song->getPlaylistId(), pos);
+    return this->request(mpdCommand);
 }
 
 MpdRequest *MusicPlayerConnection::playSong(unsigned int songId)
 {
-    MpdRequest *request = new MpdRequest(QString("playid %1").arg(songId));
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("playid %1").arg(songId);
+    return this->request(mpdCommand);
 }
 
 MpdRequest *MusicPlayerConnection::removeSong(unsigned int songId)
 {
-    MpdRequest *request = new MpdRequest(QString("deleteid %1").arg(songId));
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("deleteid %1").arg(songId);
+    return this->request(mpdCommand);
 }
 
 MpdRequest *MusicPlayerConnection::clearQueue()
 {
-    MpdRequest *request = new MpdRequest("clear");
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("clear");
+    return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::savePlaylist(QString name)
+MpdRequest *MusicPlayerConnection::savePlaylist(QString playlistName)
 {
-    MpdRequest *request = new MpdRequest(QString("save \"%1\"").arg(name));
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("save \"%1\"").arg(playlistName);
+    return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::renamePlaylist(QString playlist, QString newName)
+MpdRequest *MusicPlayerConnection::renamePlaylist(QString oldPlaylistName, QString newPlaylistName)
 {
-    MpdRequest *request = new MpdRequest(QString("rename \"%1\" \"%2\"").arg(playlist).arg(newName));
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("rename \"%1\" \"%2\"").arg(oldPlaylistName, newPlaylistName);
+    return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::removePlaylist(QString playlist)
+MpdRequest *MusicPlayerConnection::removePlaylist(QString playlistName)
 {
-    MpdRequest *request = new MpdRequest(QString("rm \"%1\"").arg(playlist));
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("rm \"%1\"").arg(playlistName);
+    return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::appendPlaylist(QString playlist)
+MpdRequest *MusicPlayerConnection::appendPlaylist(QString playlistName)
 {
-    MpdRequest *request = new MpdRequest(QString("load \"%1\"").arg(playlist));
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("load \"%1\"").arg(playlistName);
+    return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::playPlaylist(QString playlist)
+MpdRequest *MusicPlayerConnection::playPlaylist(QString playlistName)
 {
-    MpdRequest *request = new MpdRequest(QString("command_list_begin\nclear\nload \"%1\"\nplay\ncommand_list_end").arg(playlist));
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("command_list_begin\n"
+                                        "clear\n"
+                                        "load \"%1\"\n"
+                                        "play\n"
+                                        "command_list_end"
+                                        ).arg(playlistName);
+    return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::insertSong(QString path)
+
+MpdRequest *MusicPlayerConnection::insertSong(QString songPath)
 {
-    MpdRequest *request = new MpdRequest(QString("addid \"%1\" -1").arg(path));
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("addid \"%1\" -1").arg(songPath);
+    return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::appendSong(QString path)
+MpdRequest *MusicPlayerConnection::appendSong(QString songPath)
 {
-    MpdRequest *request = new MpdRequest(QString("addid \"%1\"").arg(path));
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("addid \"%1\"").arg(songPath);
+    return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::prependSong(QString path)
+MpdRequest *MusicPlayerConnection::prependSong(QString songPath)
 {
-    MpdRequest *request = new MpdRequest(QString("addid \"%1\" 0").arg(path));
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("addid \"%1\" 0").arg(songPath);
+    return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::addSongs(QStringList paths)
+MpdRequest *MusicPlayerConnection::addSongs(QStringList songPaths)
 {
-    MpdRequest *request;
-    if (paths.isEmpty())
-        request = new MpdRequest("ping");
-    else
-        request = new MpdRequest(QString("command_list_begin\nadd \"%1\"\ncommand_list_end").arg(paths.join("\"\nadd \"")));
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand;
+    if (songPaths.isEmpty()) {
+        mpdCommand = QStringLiteral("ping");
+    } else {
+        mpdCommand = QStringLiteral("command_list_begin\n"
+                                            "add \"%1\"\n"
+                                            "command_list_end"
+                                            ).arg(songPaths.join("\"\nadd \""));
+    }
+    return this->request(mpdCommand);
 }
 
 MpdRequest *MusicPlayerConnection::seek(int songId, int time)
 {
-    MpdRequest *request = new MpdRequest(QString("seekid \"%1\" \"%2\"").arg(songId).arg(time));
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("seekid \"%1\" \"%2\"").arg(songId, time);
+    return this->request(mpdCommand);
 }
 
-MpdEntityListRequest *MusicPlayerConnection::listDirectory(QString path)
+MpdRequest *MusicPlayerConnection::listDirectory(QString path)
 {
-    MpdEntityListRequest *request = new MpdEntityListRequest(QString("lsinfo \"%1\"").arg(path));
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("lsinfo \"%1\"").arg(path);
+    return this->request(mpdCommand);
 }
 
-MpdEntityListRequest *MusicPlayerConnection::listPlaylists()
+MpdRequest *MusicPlayerConnection::listArtists()
 {
-    MpdEntityListRequest *request = new MpdEntityListRequest("listplaylists");
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("list artist");
+    return this->request(mpdCommand);
 }
 
-MpdSongListRequest *MusicPlayerConnection::getQueue()
+MpdRequest *MusicPlayerConnection::listPlaylists()
 {
-    MpdSongListRequest *request = new MpdSongListRequest("playlistinfo");
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("listplaylists");
+    return this->request(mpdCommand);
 }
 
-MpdSongListRequest *MusicPlayerConnection::getPlaylistSongs(QString playlist)
+MpdRequest *MusicPlayerConnection::getQueue()
 {
-    MpdSongListRequest *request = new MpdSongListRequest(QString("listplaylistinfo \"%1\"").arg(playlist));
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("playlistinfo");
+    return this->request(mpdCommand);
 }
 
-MpdSongListRequest *MusicPlayerConnection::search(QString query, QString scope)
+MpdRequest *MusicPlayerConnection::getPlaylistSongs(QString playlist)
 {
-    MpdSongListRequest *request = new MpdSongListRequest(QString("search \"%1\" \"%2\"").arg(scope, query));
-    enqueueRequest(request);
-    return request;
+    QString mpdCommand = QStringLiteral("listplaylistinfo \"%1\"").arg(playlist);
+    return this->request(mpdCommand);
+}
+
+MpdRequest *MusicPlayerConnection::search(QString query, QString scope)
+{
+    QString mpdCommand = QStringLiteral("search \"%1\" \"%2\"").arg(scope, query);
+    return this->request(mpdCommand);
 }
 
 void MusicPlayerConnection::debugAndDelete()
@@ -306,6 +310,7 @@ void MusicPlayerConnection::dataReady()
         if (data.startsWith("OK MPD")) {
             m_connected = true;
             emit connectedChanged();
+            qDebug() << "Connected: OK MPD";
             p_timer->start();
         } else {
             qDebug("Expected MPD welcome message, but got '%s'", data.constData());
@@ -321,11 +326,11 @@ void MusicPlayerConnection::dataReady()
         data = p_socket->readLine();
         if (data.startsWith("OK")) {
             p_waitingRequest->setOk();
-            p_waitingRequest = 0;
+            p_waitingRequest = nullptr;
             sendNextRequest();
         } else if (data.startsWith("ACK")) {
             p_waitingRequest->setAck(QString::fromUtf8(data.constData()));
-            p_waitingRequest = 0;
+            p_waitingRequest = nullptr;
             sendNextRequest();
         } else {
             p_waitingRequest->feedData(data);
@@ -336,16 +341,23 @@ void MusicPlayerConnection::dataReady()
 void MusicPlayerConnection::renewStatus()
 {
     if (m_connected) {
-        MpdStatusRequest *req = getStatus();
+        MpdRequest *req = getStatus();
         connect(req, SIGNAL(resultReady()), SLOT(statusReady()));
     }
 }
 
 void MusicPlayerConnection::statusReady()
 {
-    MpdStatusRequest *req = qobject_cast<MpdStatusRequest*>(sender());
-    if (p_status.data()==0 || *req->getStatus().data() != *p_status.data()) {
-        p_status = req->getStatus();
+    MpdRequest *req = qobject_cast<MpdRequest*>(sender());
+    QList<QSharedPointer<MpdObject>> response = req->getResponse();
+    if (response.length() !=1) {
+        qDebug() << "Incorrect Status, response has" << response.length() << "elements.";
+        req->deleteLater();
+        return;
+    }
+    QSharedPointer<MpdStatus> status = response.first().dynamicCast<MpdStatus>();
+    if (p_status.data()==0 || *status != *p_status.data()) {
+        p_status = QSharedPointer<MpdStatus>(status);
         emit statusChanged(p_status);
     }
     req->deleteLater();
@@ -388,9 +400,9 @@ void MusicPlayerConnection::enqueueRequest(MpdRequest *request)
 
 void MusicPlayerConnection::sendNextRequest()
 {
-    if (p_waitingRequest!=0 || m_requestQueue.isEmpty())
+    if (p_waitingRequest != 0 || m_requestQueue.isEmpty())
         return;
-    if (p_socket->state()!=QAbstractSocket::ConnectedState)
+    if (p_socket->state() != QAbstractSocket::ConnectedState)
         return; // qDebug("MPC: Socket is not open");
     p_waitingRequest = m_requestQueue.takeFirst();
     p_socket->write(p_waitingRequest->m_requestMessage.toUtf8()+'\n');

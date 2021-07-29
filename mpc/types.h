@@ -25,11 +25,21 @@
 #include <QList>
 #include <QSharedPointer>
 
-namespace MPD {
-QMultiHash<QString, QString> parseData(QString data);
-}
+class MpdObject
+{
+public:
+    enum Type {
+        Artist,
+        Album,
+        Song,
+        Directory,
+        Playlist,
+        Status
+    };
+    virtual Type getType() = 0;
+};
 
-class MpdStatus
+class MpdStatus : public MpdObject
 {
 public:
     enum MpdState {
@@ -39,7 +49,12 @@ public:
         Unknown
     };
 
-    MpdStatus(QString data);
+    MpdStatus(const QMultiHash<QByteArray, QByteArray> &hash);
+    MpdStatus();
+
+    virtual QString getDescription() { return QString("status");};
+    virtual Type getType() { return Status; };
+    virtual QString getPath() { return QString("status");} ;
 
     bool repeat() { return m_repeat; }
     bool random() { return m_random; }
@@ -66,26 +81,18 @@ private:
     unsigned int m_totalTime;
 };
 
-class MpdEntity
+class MpdEntity : public MpdObject
 {
 public:
-    enum Type {
-        Song,
-        Directory,
-        Playlist
-    };
-
     virtual ~MpdEntity() {}
     virtual QString getDescription() = 0;
-    virtual Type getType() = 0;
     virtual QString getPath() = 0;
 };
-
 
 class MpdSong : public MpdEntity
 {
 public:
-    MpdSong(QString data);
+    MpdSong(const QMultiHash<QByteArray, QByteArray>& hash);
     virtual Type getType() { return Song; }
     virtual QString getDescription();
 
@@ -108,10 +115,34 @@ private:
 };
 
 
+class MpdAlbum : public MpdEntity
+{
+public:
+    MpdAlbum(const QMultiHash<QByteArray,QByteArray>& hash);
+    virtual Type getType() { return Artist; }
+    virtual QString getDescription() { return m_name; }
+    QString getPath() { return m_name; }
+
+private:
+    QString m_name;
+};
+
+class MpdArtist : public MpdEntity
+{
+public:
+    MpdArtist(const QMultiHash<QByteArray,QByteArray>& hash);
+    virtual Type getType() { return Artist; }
+    virtual QString getDescription() { return m_name; }
+    QString getPath() { return m_name; }
+
+private:
+    QString m_name;
+};
+
 class MpdDirectory : public MpdEntity
 {
 public:
-    MpdDirectory(QString data);
+    MpdDirectory(const QMultiHash<QByteArray,QByteArray>& hash);
     virtual Type getType() { return Directory; }
     virtual QString getDescription() { return m_path.section('/', -1); }
     QString getPath() { return m_path; }
@@ -123,7 +154,7 @@ private:
 class MpdPlaylist : public MpdEntity
 {
 public:
-    MpdPlaylist(QString data);
+    MpdPlaylist(const QMultiHash<QByteArray,QByteArray>& hash);
     Type getType() { return Playlist; }
     virtual QString getDescription() { return m_name; }
     QString getName() { return m_name; }
@@ -134,38 +165,19 @@ private:
 };
 
 
-class MpdEntityListParser
+class MpdEntityList : public QList<QSharedPointer<MpdEntity>>
 {
 public:
-    MpdEntityListParser(QByteArray data=QByteArray()) { feedData(data); }
-    QList<QSharedPointer<MpdEntity> > feedData(QByteArray data);
-    QSharedPointer<MpdEntity> endData();
-private:
-    QByteArray m_buffer;
+    MpdEntityList() { }
 };
 
-
-class MpdEntityList : public QList<QSharedPointer<MpdEntity> >
+class MpdSongList : public QList<QSharedPointer<MpdSong>>
 {
 public:
-    MpdEntityList(QByteArray data=QByteArray()) { feedData(data); }
-    void feedData(QByteArray data) { append(m_parser.feedData(data)); }
-    void endData();
-private:
-    MpdEntityListParser m_parser;
-};
-
-class MpdSongList : public QList<QSharedPointer<MpdSong> >
-{
-public:
-    MpdSongList(QByteArray data=QByteArray()) { feedData(data); }
-    void feedData(QByteArray data);
-    void endData();
+    MpdSongList() { }
     QSharedPointer<MpdSong> getSongById(int songId);
     int getSongIndex(int songId);
     static MpdSongList fromEntityList(MpdEntityList l);
-private:
-    MpdEntityListParser m_parser;
 };
 
 

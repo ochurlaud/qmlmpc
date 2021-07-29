@@ -44,5 +44,7 @@
         <file>widgets/TddListView.qml</file>
         <file>Style.qml</file>
         <file>qmldir</file>
+        <file>mpc/PlaylistView.qml</file>
+        <file>mpc/SettingsPanel.qml</file>
     </qresource>
 </RCC>

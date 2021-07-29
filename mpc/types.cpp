@@ -20,24 +20,15 @@
 #include "types.h"
 
 #include <QStringList>
+#include <QDebug>
 
-QMultiHash<QString,QString> MPD::parseData(QString data)
+MpdStatus::MpdStatus() : MpdStatus::MpdStatus(QMultiHash<QByteArray,QByteArray>())
 {
-    QMultiHash<QString,QString> hash;
-    QString tmp;
-    int i;
-    foreach (tmp, data.split("\n")) {
-        i = tmp.indexOf(": ");
-        if (i!=-1)
-            hash.insert(tmp.left(i).toLower(), tmp.mid(i+2));
-    }
-    return hash;
+
 }
 
-
-MpdStatus::MpdStatus(QString data)
+MpdStatus::MpdStatus(const QMultiHash<QByteArray,QByteArray>& hash)
 {
-    QMultiHash<QString,QString> hash = MPD::parseData(data);
     m_repeat = hash.value("repeat") == "1";
     m_random = hash.value("random") == "1";
     m_playlistVersion = hash.value("playlist", "-1").toUInt();
@@ -50,7 +41,7 @@ MpdStatus::MpdStatus(QString data)
     else if (state == "pause")
         m_state = Pause;
     else {
-        qDebug("Could not parse state '%s'", qPrintable(state));
+        qDebug() << "Could not parse state" << qPrintable(state);
         m_state = Unknown;
     }
     m_currentSongPos = hash.value("song", "-1").toInt();
@@ -79,13 +70,8 @@ bool MpdStatus::operator ==(MpdStatus &other)
             other.m_totalTime == m_totalTime);
 }
 
-MpdSong::MpdSong(QString data)
+MpdSong::MpdSong(const QMultiHash<QByteArray,QByteArray> &hash)
 {
-    if (!data.startsWith("file: ")) {
-        qDebug("Can not create a song with data not starting with 'file: '");
-        return;
-    }
-    QMultiHash<QString,QString> hash = MPD::parseData(data);
     m_path = hash.value("file");
     m_title = hash.value("title");
     m_artist = hash.value("artist");
@@ -102,87 +88,27 @@ QString MpdSong::getDescription()
     return m_title+ " - " + m_artist;
 }
 
-MpdDirectory::MpdDirectory(QString data)
+MpdDirectory::MpdDirectory(const QMultiHash<QByteArray, QByteArray>& hash)
 {
-    if (!data.startsWith("directory: ")) {
-        qDebug("Can not create a directory with data not starting with 'directory: '");
-        return;
-    }
-    if (data.indexOf('\n')!=-1) {
-        qDebug("directory data contains more than one line, ignoring all but the first line");
-        data = data.section('\n', 0, 0);
-    }
-    m_path = data.mid(11);
+    m_path = hash.value("directory");
 }
 
-MpdPlaylist::MpdPlaylist(QString data)
+MpdPlaylist::MpdPlaylist(const QMultiHash<QByteArray,QByteArray>& hash)
 {
-    if (!data.startsWith("playlist: ")) {
-        qDebug("Can not create a playlist width data not starting with 'playlist: '");
-        return;
-    }
-    m_name = data.section('\n', 0, 0).mid(10); // ignore everything but the playlist name
+    m_name = hash.value("playlist");
 }
 
-QList<QSharedPointer<MpdEntity> > MpdEntityListParser::feedData(QByteArray data)
+MpdArtist::MpdArtist(const QMultiHash<QByteArray,QByteArray>& hash)
 {
-    m_buffer.append(data);
-    QList<QSharedPointer<MpdEntity> > entities;
-    // find first occurence of '\ndirectory: ', '\nfile: ' or
-    // '\nplaylist: ', indicating the start of the next entity
-    int i = -1;
-    int lastIndex = 0;
-    const char* buffer = m_buffer.constData();
-    while ( (i=m_buffer.indexOf('\n', i+1)) != -1) {
-        if (    qstrncmp(buffer+i+1, "directory: ", 11)==0 ||
-                qstrncmp(buffer+i+1, "file: ", 6)==0  ||
-                qstrncmp(buffer+i+1, "playlist: ", 10)==0 ) {
-            QString entityData = QString::fromUtf8(buffer+lastIndex, i-lastIndex);
-            lastIndex = i+1; // skip the \n (i++; lastIndex=i)
-            MpdEntity *entity = 0;
-            if (entityData.startsWith("file: ")) {
-                entity = new MpdSong(entityData);
-            } else if (entityData.startsWith("directory: ")) {
-                entity = new MpdDirectory(entityData);
-            } else if (entityData.startsWith("playlist: ")) {
-                entity = new MpdPlaylist(entityData);
-            } else {
-                qDebug("Could not create entity from data '%s'", qPrintable(entityData));
-            }
-
-            if (entity) {
-                entities.append(QSharedPointer<MpdEntity>(entity));
-            }
-        }
-    }
-    m_buffer = m_buffer.mid(lastIndex);
-    return entities;
+    m_name = hash.value("artist");
 }
 
-QSharedPointer<MpdEntity> MpdEntityListParser::endData()
-{
-    MpdEntity *entity = 0;
-    if (m_buffer.length()==0)
-        return QSharedPointer<MpdEntity>();
-    if (m_buffer.startsWith("file: "))
-        entity = new MpdSong(QString::fromUtf8(m_buffer.constData()));
-    else if (m_buffer.startsWith("directory: "))
-        entity = new MpdDirectory(QString::fromUtf8(m_buffer.constData()));
-    else if (m_buffer.startsWith("playlist: "))
-        entity = new MpdPlaylist(QString::fromUtf8(m_buffer.constData()));
-    if (!entity)
-        qDebug("Could not create entity from data '%s'", m_buffer.constData());
-    m_buffer.clear();
-    return QSharedPointer<MpdEntity>(entity);
-}
 
-void MpdEntityList::endData()
+MpdAlbum::MpdAlbum(const QMultiHash<QByteArray,QByteArray>& hash)
 {
-    QSharedPointer<MpdEntity> entity = m_parser.endData();
-    if (!entity.isNull())
-        append(entity);
+    m_name = hash.value("artistZ");
 }
-
+/*
 void MpdSongList::feedData(QByteArray data)
 {
     QList<QSharedPointer<MpdEntity> > l = m_parser.feedData(data);
@@ -193,12 +119,12 @@ void MpdSongList::feedData(QByteArray data)
 
 void MpdSongList::endData()
 {
-    QSharedPointer<MpdEntity> entity = m_parser.endData();
-    if (entity.isNull())
-        return;
-    if (entity->getType()==MpdEntity::Song)
-        append(qSharedPointerCast<MpdSong>(entity));
-}
+    QList<QSharedPointer<MpdEntity> > entities = m_parser.endData();
+    for (auto entity : entities) {
+        if (entity->getType()==MpdEntity::Song)
+            append(qSharedPointerCast<MpdSong>(entity));
+    }
+}*/
 
 QSharedPointer<MpdSong> MpdSongList::getSongById(int songId)
 {
@@ -222,7 +148,7 @@ MpdSongList MpdSongList::fromEntityList(MpdEntityList l)
     MpdSongList songList;
     for (int i=0; i<l.length(); i++)
         if (l.at(i)->getType()==MpdEntity::Song)
-            songList.append(qSharedPointerCast<MpdSong>(l.at(i)));
+            songList.append(l.at(i).dynamicCast<MpdSong>());
     return songList;
 }
 

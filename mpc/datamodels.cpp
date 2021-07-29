@@ -47,7 +47,9 @@ QVariant MpdEntityListModel::data(const QModelIndex &index, int role) const
         return m_list.at(index.row())->getDescription();
     case Qt::UserRole+1:
         MpdEntity::Type type = m_list.at(index.row())->getType();
-        switch(type) {
+        switch(type) {        
+        case MpdEntity::Artist:
+            return "Artist";
         case MpdEntity::Directory:
             return "Directory";
         case MpdEntity::Song:

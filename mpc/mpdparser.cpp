@@ -1,0 +1,64 @@
+#include "mpdparser.h"
+
+#include <QMultiHash>
+#include <QDebug>
+
+QList<QSharedPointer<MpdObject>> MpdParser::parseData(const QByteArray& data)
+{
+    QByteArray firstKey = "";
+    QMultiHash<QByteArray, QByteArray> entityHash;
+    QList<QSharedPointer<MpdObject>> objectList;
+
+    QByteArrayList lines = data.split('\n');
+
+    for (int i = 0 ; i < lines.count() ; i++ ) {
+        const QByteArray& line = lines.at(i);
+        if (line.isEmpty()) {
+            continue;
+        }
+        int firstColonPos = line.indexOf(':');
+
+        const QByteArray& key = line.left(firstColonPos);
+        const QByteArray& value = line.mid(firstColonPos + 2); // 2 = len(": ")
+        // Define the first key to understand the entity we deal with
+        if (firstKey.isEmpty()) {
+            firstKey = key;
+        // If we find the first key again, it means we start a new entity
+        // So we first deal with the previous entity
+        } else if ((!firstKey.isEmpty() && key == firstKey)) {
+            QSharedPointer<MpdObject> mpdObject = this->parseObject(firstKey, entityHash);
+            objectList.append(mpdObject);
+            entityHash.clear();
+        }
+        entityHash.insert(key, value);
+    }
+
+    if (!entityHash.isEmpty()) {
+        QSharedPointer<MpdObject> mpdObject = this->parseObject(firstKey, entityHash);
+        objectList.append(mpdObject);
+    }
+    return objectList;
+}
+
+QSharedPointer<MpdObject> MpdParser::parseObject(const QString& mpdObjectKey,
+                                                 const QMultiHash<QByteArray, QByteArray>& entityHash
+                                                 )
+{
+    QSharedPointer<MpdObject> object = nullptr;
+    if (mpdObjectKey == "file") {
+        object = QSharedPointer<MpdObject>(new MpdSong(entityHash));
+    } else if (mpdObjectKey == "directory") {
+        object = QSharedPointer<MpdObject>(new MpdDirectory(entityHash));
+    } else if (mpdObjectKey == "playlist") {
+        object = QSharedPointer<MpdObject>(new MpdPlaylist(entityHash));
+    } else if (mpdObjectKey == "Artist") {
+        object = QSharedPointer<MpdObject>(new MpdArtist(entityHash));
+    } else if (mpdObjectKey == "Album") {
+        object = QSharedPointer<MpdObject>(new MpdAlbum(entityHash));
+    } else if (entityHash.contains(QByteArray("state"))) {
+        object = QSharedPointer<MpdObject>(new MpdStatus(entityHash));
+    } else {
+        qDebug("Could not create entity from data '%s'", qPrintable(mpdObjectKey));
+    }
+    return QSharedPointer<MpdObject>(object);
+}

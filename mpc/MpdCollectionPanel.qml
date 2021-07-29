@@ -18,14 +18,16 @@
  */
 
 import QtQuick 2.1
+import QtQuick.Controls 2.15
+
 import "../widgets"
 import ".." // import Style.qml
 
 import "mpd.js" as MPD
 
-Rectangle {
-    width: 4*Style.first8ColumnsWidth+4*Style.last4ColumnsWidth
-    height: 7*Style.rowHeight
+Pane {
+    width: parent.width
+    anchors.fill: parent
 
     property int numSelectedSongs: mpdConnector.collectionModel.numSelectedSongs
     property int numSelectedDirs: mpdConnector.collectionModel.numSelectedDirectories
@@ -50,29 +52,23 @@ Rectangle {
             text: "Contents of:\n/"+mpdConnector.currentCollectionPath
             textItem.wrapMode: Text.WordWrap
         }
-        Rectangle {
+        ScrollView {
             width: parent.width
             height: 5*Style.rowHeight
-            color: "white"
-            TddListView {
+            //color: "white"
+            ListView {
                 anchors.fill: parent
                 model: mpdConnector.collectionModel
-                delegate: Rectangle {
+                delegate: ItemDelegate {
                     width: parent.width
-                    height: Style.rowHeight/2
                     // color: steelblue if selected, else alternating row colors
-                    color: selected ? "steelblue" : (index%2?"white":"#ddd")
+                    //color: selected ? "steelblue" : (index%2?"white":"#ddd")
                     property bool selected: mpdConnector.collectionModel.isSelected(index)
                     Connections {
                         target:mpdConnector.collectionModel
                         function onSelectionChanged(index) { 
                             selected = mpdConnector.collectionModel.isSelected(index)
                         }
-                    }
-                    Image {
-                        anchors.verticalCenter: parent.verticalCenter
-                        x: 3
-                        source: type=="Directory"?"images/folder.png":"images/song.png"
                     }
                     Text {
                         text: description
@@ -109,5 +105,5 @@ Rectangle {
         }
     }
 
-    Component.onCompleted: mpdConnector.listDirectory("")
+    Component.onCompleted: mpdConnector.listDirectory("") //listArtists()
 }

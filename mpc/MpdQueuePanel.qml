@@ -67,84 +67,11 @@ Pane {
             }
         }
 
-
-        ScrollView {
+        PlaylistView {
             width: parent.width
             height: parent.height - progressBar.height - buttonrow.height
-            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-            ListView {
-                id: queueView
-                anchors.fill: parent
-                model: mpdConnector.queueModel
-                property int savedScroll
-                onCurrentIndexChanged: positionViewAtIndex(currentIndex, ListView.Visible)
-                Connections {
-                    target: queueView.model
-                    onModelAboutToBeReset: queueView.savedScroll = queueView.contentY
-                    onModelReset: {
-                        queueView.contentY = queueView.savedScroll
-                        var i = queueView.model.getSongIndex(appwindow.selectedSong.id)
-                        if (i!==-1) queueView.currentIndex = i
-                    }
-                }
-                delegate: Rectangle { // ItemDelegate ??
-                    width: queueView.width
-                    height: Style.rowHeight/2
-                    // color: steelblue if selected, else alternating row colors
-                    color:  ListView.isCurrentItem ? Material.accentColor : (index %2 ? "white" : "#ddd")
-                    Image {
-                        id: img
-                        source: "images/play-mini.png"
-                        visible: songId===mpdConnector.currentSongId
-                        anchors { left: parent.left; leftMargin: 3; verticalCenter: parent.verticalCenter }
-                    }
-                    Text {
-                        text: description
-                        elide: Text.ElideRight
-                        verticalAlignment: Text.AlignVCenter
-                        anchors { fill: parent; margins: 3; }
-                        anchors.leftMargin: img.visible?img.width+6:3
-                    }
-                    MouseArea {
-                        anchors.fill: parent
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        onDoubleClicked: mpdConnector.playSong(songId)
-                        onClicked: {
-                            queueView.currentIndex = index
-                            if (mouse.button === Qt.RightButton) {
-                                contextMenu.popup()
-                            }
-                        }
-                        onPressAndHold: {
-                            queueView.currentIndex = index
-                            if (mouse.source === Qt.MouseEventNotSynthesized) {
-                                contextMenu.popup()
-                            }
-                        }
-                        Menu {
-                             id: contextMenu
-
-                             MenuItem {
-                                 text: qsTr("Play next")
-                                 onTriggered: mpdConnector.moveSongAfterCurrent(songId)
-                             }
-                             MenuItem {
-                                 text: qsTr("Move first")
-                                 onTriggered: mpdConnector.moveSongFirst(songId)
-                             }
-                             MenuItem {
-                                 text: qsTr("Move last")
-                                 onTriggered: mpdConnector.moveSongLast(songId)
-                             }
-                             MenuItem {
-                                 text: qsTr("Remove from playlist")
-                                 onTriggered: mpdConnector.removeSong(songId)
-                             }
-                         }
-                    }
-                }
-            }
         }
+
         //Future FEATURE
         /*TextField {
             width: parent.width

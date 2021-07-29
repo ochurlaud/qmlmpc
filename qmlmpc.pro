@@ -9,6 +9,8 @@ DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x050F00
 SOURCES += main.cpp \
     mpc/datamodels.cpp \
     mpc/mpdconnector.cpp \
+    mpc/mpdparser.cpp \
+    mpc/mpdrequest.cpp \
     mpc/musicplayerconnection.cpp \
     mpc/types.cpp \
     settings.cpp
@@ -24,6 +26,8 @@ include(deployment.pri)
 HEADERS += \
     mpc/datamodels.h \
     mpc/mpdconnector.h \
+    mpc/mpdparser.h \
+    mpc/mpdrequest.h \
     mpc/musicplayerconnection.h \
     mpc/types.h \
     settings.h

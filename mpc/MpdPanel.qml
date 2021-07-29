@@ -76,7 +76,7 @@ Rectangle {
             }*/
             MpdSearchPanel {
                 id: searchPanel
-                visible: activePanel === MPD.searchPanel
+                visible: false
             }
         }
 

@@ -115,6 +115,7 @@ public slots:
     void moveSongAfterCurrent(int songId);
     void seek(int time);
     void listDirectory(QString path);
+    void listArtists();
     void renewPlaylists();
     void getPlaylistSongs(QString playlist);
     void search(QString query, QString scope);
