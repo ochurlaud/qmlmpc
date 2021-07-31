@@ -238,6 +238,22 @@ MpdRequest *MusicPlayerConnection::listDirectory(QString path)
     return this->request(mpdCommand);
 }
 
+MpdRequest *MusicPlayerConnection::listAlbums(QString &artist)
+{
+    if (artist == "") {
+        return this->listAlbums();
+    }
+    QString mpdCommand = QStringLiteral("list album \"(Artist == \\\"%1\\\" )\" ").arg(artist);
+    return this->request(mpdCommand);
+}
+
+MpdRequest *MusicPlayerConnection::listAlbums()
+{
+
+    QString mpdCommand = QStringLiteral("list album");
+    return this->request(mpdCommand);
+}
+
 MpdRequest *MusicPlayerConnection::listArtists()
 {
     QString mpdCommand = QStringLiteral("list artist");

@@ -116,6 +116,8 @@ public slots:
     void seek(int time);
     void listDirectory(QString path);
     void listArtists();
+    void listAlbums();
+    void listAlbums(QString artist);
     void renewPlaylists();
     void getPlaylistSongs(QString playlist);
     void search(QString query, QString scope);
@@ -126,6 +128,8 @@ private slots:
     void playlistsReady();
     void playlistSongsReady();
     void directoryListingReady();
+    void artistListingReady();
+    void albumListingReady();
     void searchResultsReady();
 
 private:

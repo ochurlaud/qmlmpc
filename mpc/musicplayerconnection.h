@@ -71,6 +71,8 @@ public:
     MpdRequest* seek(int songId, int time);
     MpdRequest* listDirectory(QString path);
     MpdRequest* listArtists();
+    MpdRequest* listAlbums(QString& artist);
+    MpdRequest* listAlbums();
     MpdRequest* listPlaylists();
     MpdRequest* getQueue();
     MpdRequest* getPlaylistSongs(QString playlist);

@@ -90,9 +90,22 @@ void MpdConnector::listDirectory(QString path)
 
 void MpdConnector::listArtists()
 {
+    qDebug() << "tooo";
     p_collectionModel->setEntityList(MpdEntityList());
     MpdRequest *request = p_connection->listArtists();
-    connect(request, SIGNAL(resultReady()), SLOT(directoryListingReady()));
+    connect(request, SIGNAL(resultReady()), SLOT(artistListingReady()));
+}
+
+void MpdConnector::listAlbums()
+{
+    this->listAlbums("");
+}
+
+void MpdConnector::listAlbums(QString artist)
+{
+    p_collectionModel->setEntityList(MpdEntityList());
+    MpdRequest *request = p_connection->listAlbums(artist);
+    connect(request, SIGNAL(resultReady()), SLOT(albumListingReady()));
 }
 
 void MpdConnector::directoryListingReady()
@@ -107,6 +120,40 @@ void MpdConnector::directoryListingReady()
         p_collectionModel->setEntityList(entityList);
     } else {
         qDebug("listDirectory got an ACK: '%s'", qPrintable(request->getAck()));
+    }
+    request->deleteLater();
+}
+
+
+void MpdConnector::artistListingReady()
+{
+    MpdRequest *request = qobject_cast<MpdRequest*>(sender());
+    if (request->succesfull()) {
+        QList<QSharedPointer<MpdObject>> response = request->getResponse();
+        MpdEntityList entityList;
+        for (auto obj : response) {
+            entityList.append(obj.dynamicCast<MpdEntity>());
+        }
+        p_collectionModel->setEntityList(entityList);
+    } else {
+        qDebug("listArtists got an ACK: '%s'", qPrintable(request->getAck()));
+    }
+    request->deleteLater();
+}
+
+
+void MpdConnector::albumListingReady()
+{
+    MpdRequest *request = qobject_cast<MpdRequest*>(sender());
+    if (request->succesfull()) {
+        QList<QSharedPointer<MpdObject>> response = request->getResponse();
+        MpdEntityList entityList;
+        for (auto obj : response) {
+            entityList.append(obj.dynamicCast<MpdEntity>());
+        }
+        p_collectionModel->setEntityList(entityList);
+    } else {
+        qDebug("listAlbum got an ACK: '%s'", qPrintable(request->getAck()));
     }
     request->deleteLater();
 }
