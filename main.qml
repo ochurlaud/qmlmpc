@@ -26,6 +26,7 @@ import "."
 import "widgets"
 import "mpc/mpd.js" as MPD
 
+
 ApplicationWindow {
     id: appwindow
     visible: true
@@ -37,10 +38,14 @@ ApplicationWindow {
         id: selectedSong
     }
     menuBar: ToolBar {
+        id: menuToolBar
         contentHeight: toolButton1.implicitHeight
-        Label {
-            text: appwindow.toolbarTitle
+        Item {
             anchors.centerIn: parent
+            Loader {
+                anchors.centerIn: parent
+                id: toolbarCentralItem
+            }
         }
         ToolButton {
             id: toolButton1
@@ -67,7 +72,8 @@ ApplicationWindow {
                 width: parent.width
                 text: qsTr("Browse collection")
                 onClicked: {
-                    mainStack.push(collectionpanel)
+                    mainStack.pop()
+                    mainStack.push(collectionPanelComponent)
                     drawer.close()
                 }
             }
@@ -75,7 +81,7 @@ ApplicationWindow {
                 width: parent.width
                 text: qsTr("Queue")
                 onClicked: {
-                    mainStack.pop(queuePanel)
+                    mainStack.pop()
                     drawer.close()
                 }
             }
@@ -83,7 +89,8 @@ ApplicationWindow {
                 width: parent.width
                 text: qsTr("Settings")
                 onClicked: {
-                    mainStack.push(settingspanel)
+                    mainStack.pop()
+                    mainStack.push(settingsPanel)
                     drawer.close()
                 }
             }
@@ -91,7 +98,6 @@ ApplicationWindow {
     }
 
     footer:  Row {
-
         Button {
             id: previous
             icon.name:"media-skip-backward"
@@ -138,29 +144,41 @@ ApplicationWindow {
         id: mainStack
         anchors.fill: parent
 
-        initialItem: queuePanel
+        initialItem: queuePanelComponent
     }
-    MpdQueuePanel {
-        id: queuePanel
-        visible: false
+    Component {
+        id: queuePanelComponent
+        MpdQueuePanel {}
     }
 
-    MpdCollectionPanel {
-        id: collectionpanel
-        visible: false
+    Component {
+        id: collectionPanelComponent
+        MpdCollectionPanel {}
     }
 
     SettingsPanel {
         id: settingspanel
         visible: false
-
     }
+
     Connections {
         target: settingspanel
         function onCloseRequested() {
-            console.debug("ooo")
             mainStack.pop()
         }
     }
+
+
+    Component {
+        id: mainToolbarTitle
+        Label {
+            text: appwindow.toolbarTitle
+        }
+    }
+
+    Component.onCompleted: {
+        toolbarCentralItem.sourceComponent = mainToolbarTitle
+    }
+
 
 }
