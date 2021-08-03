@@ -119,7 +119,7 @@ class MpdAlbum : public MpdEntity
 {
 public:
     MpdAlbum(const QMultiHash<QByteArray,QByteArray>& hash);
-    virtual Type getType() { return Artist; }
+    virtual Type getType() { return Album; }
     virtual QString getDescription() { return m_name; }
     QString getPath() { return m_name; }
 

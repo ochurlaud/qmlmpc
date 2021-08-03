@@ -90,7 +90,6 @@ void MpdConnector::listDirectory(QString path)
 
 void MpdConnector::listArtists()
 {
-    qDebug() << "tooo";
     p_collectionModel->setEntityList(MpdEntityList());
     MpdRequest *request = p_connection->listArtists();
     connect(request, SIGNAL(resultReady()), SLOT(artistListingReady()));

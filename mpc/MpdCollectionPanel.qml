@@ -33,24 +33,13 @@ Pane {
     property int numSelectedDirs: mpdConnector.collectionModel.numSelectedDirectories
     property bool hasSelection: numSelectedDirs+numSelectedSongs > 0
 
-    MpdButton {
-        anchors.right: parent.right
-        width: Style.last4ColumnsWidth
-        image: "images/folder-up.png"
-        onClicked: {
-            var path = mpdConnector.currentCollectionPath
-            path = path.substring(0, path.lastIndexOf("/"))
-            mpdConnector.listDirectory(path)
-        }
-    }
-
     Column {
         width: parent.width
-        MpdText {
+        Label {
             width: parent.width-Style.last4ColumnsWidth
             height: Style.rowHeight
             text: "Contents of:\n/"+mpdConnector.currentCollectionPath
-            textItem.wrapMode: Text.WordWrap
+            wrapMode: Text.WordWrap
         }
         ScrollView {
             width: parent.width
@@ -79,7 +68,7 @@ Pane {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: mpdConnector.collectionModel.toggleSelection(index)
-                        onDoubleClicked: if (type=="Directory") mpdConnector.listDirectory(path)
+                        onDoubleClicked: if (type == "Directory") mpdConnector.listDirectory(path)
                     }
                 }
             }
@@ -105,5 +94,15 @@ Pane {
         }
     }
 
-    Component.onCompleted: mpdConnector.listDirectory("") //listArtists()
+    Component {
+        id: toolbarCombo
+        ComboBox {
+            model: ["Artists", "Albums", "Playlists", "Files", "Genres"]
+        }
+    }
+
+    Component.onCompleted: {
+        mpdConnector.listArtists()
+        toolbarCentralItem.sourceComponent = toolbarCombo
+    }
 }

@@ -137,7 +137,10 @@ void MpdCollectionModel::setEntityList(MpdEntityList list)
     m_selectedIndices.clear();
     for (int i=0; i<list.length(); i++) {
         MpdEntity::Type t = list.at(i)->getType();
-        if (t == MpdEntity::Directory || t == MpdEntity::Song) {
+        if (t == MpdEntity::Directory ||
+            t == MpdEntity::Song ||
+            t == MpdEntity::Artist ||
+            t == MpdEntity::Album) {
             m_list.append(list.at(i));
             m_selectedIndices.append(false);
         }
@@ -148,7 +151,11 @@ void MpdCollectionModel::setEntityList(MpdEntityList list)
 
 bool MpdCollectionModel::isSelected(int index) const
 {
-    return m_selectedIndices[index];
+    if (index >= 0) {
+        return m_selectedIndices.at(index);
+    } else {
+        return false;
+    }
 }
 
 int MpdCollectionModel::getNumSelectedSongs() const
