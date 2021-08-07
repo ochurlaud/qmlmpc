@@ -17,7 +17,7 @@
  * along with qmlmpc. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.1
+import QtQuick
 
 ListView {
     id: listView
