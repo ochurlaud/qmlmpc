@@ -18,7 +18,7 @@ QList<QSharedPointer<MpdObject>> MpdParser::parseData(const QByteArray& data)
         }
         int firstColonPos = line.indexOf(':');
 
-        const QByteArray& key = line.left(firstColonPos);
+        const QByteArray& key = line.left(firstColonPos).toLower();
         const QByteArray& value = line.mid(firstColonPos + 2); // 2 = len(": ")
         // Define the first key to understand the entity we deal with
         if (firstKey.isEmpty()) {
@@ -45,15 +45,15 @@ QSharedPointer<MpdObject> MpdParser::parseObject(const QString& mpdObjectKey,
                                                  )
 {
     QSharedPointer<MpdObject> object = nullptr;
-    if (mpdObjectKey == "file") {
+    if (mpdObjectKey == "file" or mpdObjectKey == "Title") {
         object = QSharedPointer<MpdObject>(new MpdSong(entityHash));
     } else if (mpdObjectKey == "directory") {
         object = QSharedPointer<MpdObject>(new MpdDirectory(entityHash));
     } else if (mpdObjectKey == "playlist") {
         object = QSharedPointer<MpdObject>(new MpdPlaylist(entityHash));
-    } else if (mpdObjectKey == "Artist") {
+    } else if (mpdObjectKey == "artist") {
         object = QSharedPointer<MpdObject>(new MpdArtist(entityHash));
-    } else if (mpdObjectKey == "Album") {
+    } else if (mpdObjectKey == "album") {
         object = QSharedPointer<MpdObject>(new MpdAlbum(entityHash));
     } else if (entityHash.contains(QByteArray("state"))) {
         object = QSharedPointer<MpdObject>(new MpdStatus(entityHash));

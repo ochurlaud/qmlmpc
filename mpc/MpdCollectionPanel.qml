@@ -17,8 +17,8 @@
  * along with qmlmpc. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.1
-import QtQuick.Controls 2.15
+import QtQuick
+import QtQuick.Controls
 
 import "../widgets"
 import ".." // import Style.qml
@@ -32,43 +32,61 @@ Pane {
     property int numSelectedSongs: mpdConnector.collectionModel.numSelectedSongs
     property int numSelectedDirs: mpdConnector.collectionModel.numSelectedDirectories
     property bool hasSelection: numSelectedDirs+numSelectedSongs > 0
+    property var parentList: []
 
     Column {
         width: parent.width
-        Label {
-            width: parent.width-Style.last4ColumnsWidth
-            height: Style.rowHeight
-            text: "Contents of:\n/"+mpdConnector.currentCollectionPath
-            wrapMode: Text.WordWrap
-        }
         ScrollView {
             width: parent.width
             height: 5*Style.rowHeight
+
+
             //color: "white"
             ListView {
+                id: listView
                 anchors.fill: parent
                 model: mpdConnector.collectionModel
                 delegate: ItemDelegate {
-                    width: parent.width
-                    // color: steelblue if selected, else alternating row colors
-                    //color: selected ? "steelblue" : (index%2?"white":"#ddd")
+                    width: listView.width
                     property bool selected: mpdConnector.collectionModel.isSelected(index)
                     Connections {
-                        target:mpdConnector.collectionModel
-                        function onSelectionChanged(index) { 
+                        target: mpdConnector.collectionModel
+                        function onSelectionChanged() {
                             selected = mpdConnector.collectionModel.isSelected(index)
                         }
                     }
-                    Text {
-                        text: description
-                        elide: Text.ElideRight
-                        verticalAlignment: Text.AlignVCenter
-                        anchors { fill: parent; margins: 3; leftMargin: 22 }
-                    }
                     MouseArea {
                         anchors.fill: parent
-                        onClicked: mpdConnector.collectionModel.toggleSelection(index)
-                        onDoubleClicked: if (type == "Directory") mpdConnector.listDirectory(path)
+                        onClicked: {
+                            mpdConnector.collectionModel.toggleSelection(index)
+                        }
+                        onDoubleClicked: {
+                            parentList.push(path)
+                            if (type === "Directory") {
+                                mpdConnector.listDirectory(path)
+                            } else if (type === "Artist") {
+                                mpdConnector.listAlbums(path)
+                            } else if (type === "Album") {
+                                if (parentList.length > 1) {
+                                    mpdConnector.listSongsByArtistAndAlbum(parentList[parentList.length - 2],
+                                                                           path)
+                                }
+                            } else if (type === "Song" ) {
+                                mpdConnector.appendSong(path)
+                            }
+                        }
+                    }
+                    Rectangle {
+                        id: delegateItem
+                        anchors.fill: parent
+                        color: selected ? Material.accent : "transparent"
+
+                        Text {
+                            text: description
+                            elide: Text.ElideRight
+                            verticalAlignment: Text.AlignVCenter
+                            anchors { fill: parent; margins: 3; leftMargin: 22 }
+                        }
                     }
                 }
             }

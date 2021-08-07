@@ -45,7 +45,7 @@ public:
         MoveOneDown
     };
 
-    MusicPlayerConnection(QString host, int port, QString password=QString(), QObject *parent = 0);
+    MusicPlayerConnection(const QString& host, int port, const QString& password=QString(), QObject *parent = 0);
 
     MpdRequest* getStatus();
     MpdRequest* play();
@@ -59,24 +59,25 @@ public:
     MpdRequest* playSong(unsigned int songId);
     MpdRequest* removeSong(unsigned int songId);
     MpdRequest* clearQueue();
-    MpdRequest* savePlaylist(QString name);
-    MpdRequest* renamePlaylist(QString playlist, QString newName);
-    MpdRequest* removePlaylist(QString playlist);
-    MpdRequest* appendPlaylist(QString playlist);
-    MpdRequest* playPlaylist(QString playlist);
-    MpdRequest* insertSong(QString path);
-    MpdRequest* appendSong(QString path);
-    MpdRequest* prependSong(QString path);
-    MpdRequest* addSongs(QStringList paths);
+    MpdRequest* savePlaylist(const QString& name);
+    MpdRequest* renamePlaylist(const QString& playlist, const QString& newName);
+    MpdRequest* removePlaylist(const QString& playlist);
+    MpdRequest* appendPlaylist(const QString& playlist);
+    MpdRequest* playPlaylist(const QString& playlist);
+    MpdRequest* insertSong(const QString& path);
+    MpdRequest* appendSong(const QString& path);
+    MpdRequest* prependSong(const QString& path);
+    MpdRequest* addSongs(const QStringList& paths);
     MpdRequest* seek(int songId, int time);
-    MpdRequest* listDirectory(QString path);
+    MpdRequest* listDirectory(const QString& path);
     MpdRequest* listArtists();
-    MpdRequest* listAlbums(QString& artist);
+    MpdRequest* listAlbums(const QString& artist);
     MpdRequest* listAlbums();
+    MpdRequest* listSongsByArtistAndAlbum(const QString& artist, const QString& album);
     MpdRequest* listPlaylists();
     MpdRequest* getQueue();
-    MpdRequest* getPlaylistSongs(QString playlist);
-    MpdRequest* search(QString query, QString scope);
+    MpdRequest* getPlaylistSongs(const QString& playlist);
+    MpdRequest* search(const QString& query, const QString& scope);
 
     bool isConnected() { return m_connected; }
 
@@ -88,7 +89,7 @@ public slots:
     void debugAndDelete(); //!< if an error occurred, display the error and finally delete the MpdRequest
 
     void reconnect();
-    void reconnect(QString host, int port, QString password=QString());
+    void reconnect(const QString& host, int port, const QString& password=QString());
     void disconnect();
 
 private slots:
@@ -103,7 +104,7 @@ private slots:
 
 private:
     void enqueueRequest(MpdRequest* request);
-    MpdRequest* request(const QString &mpdCommand);
+    MpdRequest* request(const QString& mpdCommand);
 
 private:
     QString m_host;

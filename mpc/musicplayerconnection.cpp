@@ -25,7 +25,7 @@
 
 #include "mpdrequest.h"
 
-MusicPlayerConnection::MusicPlayerConnection(QString host, int port, QString password, QObject *parent) :
+MusicPlayerConnection::MusicPlayerConnection(const QString& host, int port, const QString& password, QObject *parent) :
     QObject(parent),
     p_waitingRequest(0),
     m_connected(false)
@@ -158,31 +158,31 @@ MpdRequest *MusicPlayerConnection::clearQueue()
     return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::savePlaylist(QString playlistName)
+MpdRequest *MusicPlayerConnection::savePlaylist(const QString& playlistName)
 {
     QString mpdCommand = QStringLiteral("save \"%1\"").arg(playlistName);
     return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::renamePlaylist(QString oldPlaylistName, QString newPlaylistName)
+MpdRequest *MusicPlayerConnection::renamePlaylist(const QString& oldPlaylistName, const QString& newPlaylistName)
 {
     QString mpdCommand = QStringLiteral("rename \"%1\" \"%2\"").arg(oldPlaylistName, newPlaylistName);
     return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::removePlaylist(QString playlistName)
+MpdRequest *MusicPlayerConnection::removePlaylist(const QString& playlistName)
 {
     QString mpdCommand = QStringLiteral("rm \"%1\"").arg(playlistName);
     return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::appendPlaylist(QString playlistName)
+MpdRequest *MusicPlayerConnection::appendPlaylist(const QString& playlistName)
 {
     QString mpdCommand = QStringLiteral("load \"%1\"").arg(playlistName);
     return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::playPlaylist(QString playlistName)
+MpdRequest *MusicPlayerConnection::playPlaylist(const QString& playlistName)
 {
     QString mpdCommand = QStringLiteral("command_list_begin\n"
                                         "clear\n"
@@ -194,25 +194,25 @@ MpdRequest *MusicPlayerConnection::playPlaylist(QString playlistName)
 }
 
 
-MpdRequest *MusicPlayerConnection::insertSong(QString songPath)
+MpdRequest *MusicPlayerConnection::insertSong(const QString& songPath)
 {
     QString mpdCommand = QStringLiteral("addid \"%1\" -1").arg(songPath);
     return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::appendSong(QString songPath)
+MpdRequest *MusicPlayerConnection::appendSong(const QString& songPath)
 {
     QString mpdCommand = QStringLiteral("addid \"%1\"").arg(songPath);
     return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::prependSong(QString songPath)
+MpdRequest *MusicPlayerConnection::prependSong(const QString& songPath)
 {
     QString mpdCommand = QStringLiteral("addid \"%1\" 0").arg(songPath);
     return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::addSongs(QStringList songPaths)
+MpdRequest *MusicPlayerConnection::addSongs(const QStringList& songPaths)
 {
     QString mpdCommand;
     if (songPaths.isEmpty()) {
@@ -232,13 +232,13 @@ MpdRequest *MusicPlayerConnection::seek(int songId, int time)
     return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::listDirectory(QString path)
+MpdRequest *MusicPlayerConnection::listDirectory(const QString& path)
 {
     QString mpdCommand = QStringLiteral("lsinfo \"%1\"").arg(path);
     return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::listAlbums(QString &artist)
+MpdRequest *MusicPlayerConnection::listAlbums(const QString& artist)
 {
     if (artist == "") {
         return this->listAlbums();
@@ -249,8 +249,14 @@ MpdRequest *MusicPlayerConnection::listAlbums(QString &artist)
 
 MpdRequest *MusicPlayerConnection::listAlbums()
 {
-
     QString mpdCommand = QStringLiteral("list album");
+    return this->request(mpdCommand);
+}
+
+MpdRequest *MusicPlayerConnection::listSongsByArtistAndAlbum(const QString& artist, const QString& album)
+{
+    QString mpdCommand = QStringLiteral("find \"((Artist == \\\"%1\\\") AND (Album == \\\"%2\\\"))\" ")
+            .arg(artist, album);
     return this->request(mpdCommand);
 }
 
@@ -272,13 +278,13 @@ MpdRequest *MusicPlayerConnection::getQueue()
     return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::getPlaylistSongs(QString playlist)
+MpdRequest *MusicPlayerConnection::getPlaylistSongs(const QString& playlist)
 {
     QString mpdCommand = QStringLiteral("listplaylistinfo \"%1\"").arg(playlist);
     return this->request(mpdCommand);
 }
 
-MpdRequest *MusicPlayerConnection::search(QString query, QString scope)
+MpdRequest *MusicPlayerConnection::search(const QString& query, const QString& scope)
 {
     QString mpdCommand = QStringLiteral("search \"%1\" \"%2\"").arg(scope, query);
     return this->request(mpdCommand);
@@ -299,7 +305,7 @@ void MusicPlayerConnection::reconnect()
         p_socket->connectToHost(m_host, m_port);
 }
 
-void MusicPlayerConnection::reconnect(QString host, int port, QString password)
+void MusicPlayerConnection::reconnect(const QString& host, int port, const QString& password)
 {
     if (p_socket->isOpen())
         disconnect();

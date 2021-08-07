@@ -83,8 +83,11 @@ MpdSong::MpdSong(const QMultiHash<QByteArray,QByteArray> &hash)
 
 QString MpdSong::getDescription()
 {
-    if (m_title.isEmpty() || m_artist.isEmpty())
+    if (!m_title.isEmpty()) {
+        return m_title;
+    } else if (m_title.isEmpty() || m_artist.isEmpty()) {
         return m_path.section('/', -1);
+    }
     return m_title+ " - " + m_artist;
 }
 
@@ -100,7 +103,7 @@ MpdPlaylist::MpdPlaylist(const QMultiHash<QByteArray,QByteArray>& hash)
 
 MpdArtist::MpdArtist(const QMultiHash<QByteArray,QByteArray>& hash)
 {
-    m_name = hash.value("Artist");
+    m_name = hash.value("artist");
     if (m_name.isEmpty()) {
         m_name = "Unknown Artist";
     }
@@ -109,7 +112,7 @@ MpdArtist::MpdArtist(const QMultiHash<QByteArray,QByteArray>& hash)
 
 MpdAlbum::MpdAlbum(const QMultiHash<QByteArray,QByteArray>& hash)
 {
-    m_name = hash.value("Album");
+    m_name = hash.value("album");
 }
 
 QSharedPointer<MpdSong> MpdSongList::getSongById(int songId)

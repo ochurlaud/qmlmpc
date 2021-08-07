@@ -56,6 +56,10 @@ QVariant MpdEntityListModel::data(const QModelIndex &index, int role) const
             return "Song";
         case MpdEntity::Playlist:
             return "Playlist";
+        case MpdEntity::Album:
+            return "Album";
+        case MpdEntity::Status:
+            return "Status";
         }
     }
     return QVariant();

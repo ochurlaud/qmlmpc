@@ -26,7 +26,7 @@
 #define SIMPLE_REQUEST(func) MpdRequest *req = p_connection->func; if (req) connect(req, SIGNAL(resultReady()), p_connection, SLOT(debugAndDelete()));
 #define MOVE_REQUEST(songId, direction) MpdSong *song = getSong(songId); if (song) { SIMPLE_REQUEST(move(song, direction)) } else { qDebug("Move: invalid songId"); }
 
-MpdConnector::MpdConnector(QString host, int port, QString password, QObject *parent) :
+MpdConnector::MpdConnector(const QString& host, int port, const QString& password, QObject *parent) :
     QObject(parent)
 {
     p_connection = new MusicPlayerConnection(host, port, password, this);
@@ -59,14 +59,14 @@ void MpdConnector::random(bool random) { SIMPLE_REQUEST(random(random)) }
 void MpdConnector::playSong(int songId) { SIMPLE_REQUEST(playSong(songId)) }
 void MpdConnector::removeSong(int songId) { SIMPLE_REQUEST(removeSong(songId)) }
 void MpdConnector::clearQueue() { SIMPLE_REQUEST(clearQueue()) }
-void MpdConnector::savePlaylist(QString name) { SIMPLE_REQUEST(savePlaylist(name)) }
-void MpdConnector::renamePlaylist(QString playlist, QString newName) { SIMPLE_REQUEST(renamePlaylist(playlist, newName)) }
-void MpdConnector::removePlaylist(QString playlist) { SIMPLE_REQUEST(removePlaylist(playlist)) }
-void MpdConnector::appendPlaylist(QString playlist) { SIMPLE_REQUEST(appendPlaylist(playlist)) }
-void MpdConnector::playPlaylist(QString playlist) { SIMPLE_REQUEST(playPlaylist(playlist)) }
-void MpdConnector::insertSong(QString path) { if (getCurrentSongId()==-1) { return qDebug("Cannot insert song: no song is playing."); } SIMPLE_REQUEST(insertSong(path)) }
-void MpdConnector::appendSong(QString path) { SIMPLE_REQUEST(appendSong(path)) }
-void MpdConnector::prependSong(QString path) { SIMPLE_REQUEST(prependSong(path)) }
+void MpdConnector::savePlaylist(const QString& name) { SIMPLE_REQUEST(savePlaylist(name)) }
+void MpdConnector::renamePlaylist(const QString& playlist, const QString& newName) { SIMPLE_REQUEST(renamePlaylist(playlist, newName)) }
+void MpdConnector::removePlaylist(const QString& playlist) { SIMPLE_REQUEST(removePlaylist(playlist)) }
+void MpdConnector::appendPlaylist(const QString& playlist) { SIMPLE_REQUEST(appendPlaylist(playlist)) }
+void MpdConnector::playPlaylist(const QString& playlist) { SIMPLE_REQUEST(playPlaylist(playlist)) }
+void MpdConnector::insertSong(const QString& path) { if (getCurrentSongId()==-1) { return qDebug("Cannot insert song: no song is playing."); } SIMPLE_REQUEST(insertSong(path)) }
+void MpdConnector::appendSong(const QString& path) { SIMPLE_REQUEST(appendSong(path)) }
+void MpdConnector::prependSong(const QString& path) { SIMPLE_REQUEST(prependSong(path)) }
 void MpdConnector::addSongs(QStringList paths) { SIMPLE_REQUEST(addSongs(paths)) }
 void MpdConnector::moveSongUp(int songId) { MOVE_REQUEST(songId, MusicPlayerConnection::MoveOneUp) }
 void MpdConnector::moveSongDown(int songId) { MOVE_REQUEST(songId, MusicPlayerConnection::MoveOneDown) }
@@ -79,7 +79,7 @@ void MpdConnector::seek(int time)
     SIMPLE_REQUEST(seek(p_status->currentSongId(), time));
 }
 
-void MpdConnector::listDirectory(QString path)
+void MpdConnector::listDirectory(const QString& path)
 {
     m_currentCollectionPath = path;
     emit currentCollectionPathChanged();
@@ -100,11 +100,18 @@ void MpdConnector::listAlbums()
     this->listAlbums("");
 }
 
-void MpdConnector::listAlbums(QString artist)
+void MpdConnector::listAlbums(const QString &artist)
 {
     p_collectionModel->setEntityList(MpdEntityList());
     MpdRequest *request = p_connection->listAlbums(artist);
     connect(request, SIGNAL(resultReady()), SLOT(albumListingReady()));
+}
+
+void MpdConnector::listSongsByArtistAndAlbum(const QString& artist, const QString& album)
+{
+    p_collectionModel->setEntityList(MpdEntityList());
+    MpdRequest *request = p_connection->listSongsByArtistAndAlbum(artist, album);
+    connect(request, SIGNAL(resultReady()), SLOT(songListingReady()));
 }
 
 void MpdConnector::directoryListingReady()
@@ -157,6 +164,22 @@ void MpdConnector::albumListingReady()
     request->deleteLater();
 }
 
+void MpdConnector::songListingReady()
+{
+    MpdRequest *request = qobject_cast<MpdRequest*>(sender());
+    if (request->succesfull()) {
+        QList<QSharedPointer<MpdObject>> response = request->getResponse();
+        MpdEntityList entityList;
+        for (auto obj : response) {
+            entityList.append(obj.dynamicCast<MpdEntity>());
+        }
+        p_collectionModel->setEntityList(entityList);
+    } else {
+        qDebug("listSong got an ACK: '%s'", qPrintable(request->getAck()));
+    }
+    request->deleteLater();
+}
+
 void MpdConnector::renewPlaylists()
 {
     MpdRequest *request = p_connection->listPlaylists();
@@ -179,7 +202,7 @@ void MpdConnector::playlistsReady()
     request->deleteLater();
 }
 
-void MpdConnector::getPlaylistSongs(QString playlist)
+void MpdConnector::getPlaylistSongs(const QString& playlist)
 {
     if (playlist.isEmpty())
         return p_playlistSongsModel->setSongList(MpdSongList());
@@ -203,7 +226,7 @@ void MpdConnector::playlistSongsReady()
     request->deleteLater();
 }
 
-void MpdConnector::search(QString query, QString scope)
+void MpdConnector::search(const QString& query, const QString& scope)
 {
     MpdRequest *request = p_connection->search(query, scope);
     connect(request, SIGNAL(resultReady()), SLOT(searchResultsReady()));
