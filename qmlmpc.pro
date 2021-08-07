@@ -21,7 +21,7 @@ RESOURCES += qml.qrc
 QML_IMPORT_PATH =
 
 # Default rules for deployment.
-include(deployment.pri)
+#include(deployment.pri)
 
 HEADERS += \
     mpc/datamodels.h \
@@ -34,3 +34,12 @@ HEADERS += \
 
 DISTFILES += \
     README.md
+
+android {
+    ANDROID_PACKAGE_SOURCE_DIR = android
+
+    DISTFILES += \
+        android/AndroidManifest.xml \
+        android/build.gradle \
+        android/res/values/libs.xml
+}
