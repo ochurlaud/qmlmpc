@@ -20,28 +20,21 @@
 import QtQuick
 import QtQuick.Controls
 
-import "../widgets"
-import ".." // import Style.qml
-
-import "mpd.js" as MPD
-
 Pane {
     width: parent.width
     anchors.fill: parent
-
-    property int numSelectedSongs: mpdConnector.collectionModel.numSelectedSongs
-    property int numSelectedDirs: mpdConnector.collectionModel.numSelectedDirectories
-    property bool hasSelection: numSelectedDirs+numSelectedSongs > 0
     property var parentList: []
+    property bool isFirstPanel: true
 
     Column {
         width: parent.width
+        height: parent.height
+
         ScrollView {
             width: parent.width
-            height: 5*Style.rowHeight
+            height: parent.height
+            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-
-            //color: "white"
             ListView {
                 id: listView
                 anchors.fill: parent
@@ -57,24 +50,76 @@ Pane {
                     }
                     MouseArea {
                         anchors.fill: parent
-                        onClicked: {
-                            mpdConnector.collectionModel.toggleSelection(index)
-                        }
-                        onDoubleClicked: {
-                            parentList.push(path)
-                            if (type === "Directory") {
-                                mpdConnector.listDirectory(path)
-                            } else if (type === "Artist") {
-                                mpdConnector.listAlbums(path)
-                            } else if (type === "Album") {
-                                if (parentList.length > 1) {
-                                    mpdConnector.listSongsByArtistAndAlbum(parentList[parentList.length - 2],
-                                                                           path)
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        Connections {
+                            function browse(path, type) {
+                                parentList.push(path)
+                                isFirstPanel = false
+                                if (type === "Directory") {
+                                    mpdConnector.listDirectory(path)
+                                } else if (type === "Artist") {
+                                    mpdConnector.listAlbums(path)
+                                } else if (type === "Album") {
+                                    if (parentList.length > 1) {
+                                        mpdConnector.listSongsByArtistAndAlbum(parentList[parentList.length - 2],
+                                                                               path)
+                                    }
+                                } else if (type === "Song" ) {
+                                    mpdConnector.appendSong(path)
                                 }
-                            } else if (type === "Song" ) {
-                                mpdConnector.appendSong(path)
+                            }
+
+                            function menu(path, type) {
+                                if (type === "Song") {
+                                    contextMenu.popup()
+                                }
+                            }
+
+                            function onClicked(mouse) {
+                                if (mouse.button === Qt.LeftButton) {
+                                    browse(path, type)
+                                } else if (mouse.button === Qt.RightButton) {
+                                    menu(path, type)
+                                }
+                            }
+                            function onPressAndHold(mouse) {
+                                if (mouse.source === Qt.MouseEventNotSynthesized) {
+                                    menu(path, type)
+                                }
+                            }
+                            function onDoubleClicked(mouse) {
+                                browse(path, type)
                             }
                         }
+                        Menu {
+                             id: contextMenu
+
+                             MenuItem {
+                                 text: qsTr("Add song")
+                                 onTriggered: mpdConnector.appendSong(path)
+                             }
+                             MenuItem {
+                                 text: qsTr("Add next")
+                                 onTriggered: mpdConnector.moveSongAfterCurrent(songId)
+                             }
+                             MenuItem {
+                                 text: qsTr("Add and replace")
+                                 onTriggered: mpdConnector.moveSongAfterCurrent(songId)
+                             }
+                             MenuItem {
+                                 text: qsTr("Add, replace and play")
+                                 onTriggered: mpdConnector.moveSongAfterCurrent(songId)
+                             }
+                             MenuItem {
+                                 text: qsTr("Add to playlist")
+                                 onTriggered: mpdConnector.moveSongAfterCurrent(songId)
+                             }
+                             MenuItem {
+                                 text: qsTr("Go to the artist")
+                                 onTriggered: mpdConnector.moveSongAfterCurrent(songId)
+                             }
+                        }
+
                     }
                     Rectangle {
                         id: delegateItem
@@ -91,36 +136,10 @@ Pane {
                 }
             }
         }
-        Row {
-            MpdButton {
-                width: 4*Style.first8ColumnsWidth
-                text: "Add selected "+numSelectedSongs+" songs and "+numSelectedDirs+" directories"
-                image: "images/append.png"
-                enabled: hasSelection
-                onClicked: mpdConnector.addSongs(mpdConnector.collectionModel.getSelectedPaths())
-            }
-            MpdButton {
-                width: 2*Style.last4ColumnsWidth
-                text: "Select all"
-                onClicked: mpdConnector.collectionModel.selectAll()
-            }
-            MpdButton {
-                width: 2*Style.last4ColumnsWidth
-                text: "Select none"
-                onClicked: mpdConnector.collectionModel.deselectAll()
-            }
-        }
     }
 
-    Component {
-        id: toolbarCombo
-        ComboBox {
-            model: ["Artists", "Albums", "Playlists", "Files", "Genres"]
-        }
-    }
 
     Component.onCompleted: {
         mpdConnector.listArtists()
-        toolbarCentralItem.sourceComponent = toolbarCombo
     }
 }
