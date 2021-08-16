@@ -22,6 +22,12 @@
 #include <QStringList>
 #include <QDebug>
 
+
+MpdId::MpdId(const QMultiHash<QByteArray, QByteArray> &hash)
+{
+    m_id = hash.value("id").toUInt();
+}
+
 MpdStatus::MpdStatus() : MpdStatus::MpdStatus(QMultiHash<QByteArray,QByteArray>())
 {
 

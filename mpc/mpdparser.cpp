@@ -55,6 +55,8 @@ QSharedPointer<MpdObject> MpdParser::parseObject(const QString& mpdObjectKey,
         object = QSharedPointer<MpdObject>(new MpdArtist(entityHash));
     } else if (mpdObjectKey == "album") {
         object = QSharedPointer<MpdObject>(new MpdAlbum(entityHash));
+    } else if (mpdObjectKey == "id") {
+        object = QSharedPointer<MpdObject>(new MpdId(entityHash));
     } else if (entityHash.contains(QByteArray("state"))) {
         object = QSharedPointer<MpdObject>(new MpdStatus(entityHash));
     } else {

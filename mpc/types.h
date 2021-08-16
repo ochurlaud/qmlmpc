@@ -34,9 +34,20 @@ public:
         Song,
         Directory,
         Playlist,
-        Status
+        Status,
+        Id
     };
     virtual Type getType() = 0;
+};
+
+class MpdId : public MpdObject
+{
+public:
+    MpdId(const QMultiHash<QByteArray, QByteArray> &hash);
+    virtual Type getType() { return Id; };
+    int id() const { return m_id; };
+private:
+    int m_id;
 };
 
 class MpdStatus : public MpdObject
@@ -52,9 +63,7 @@ public:
     MpdStatus(const QMultiHash<QByteArray, QByteArray> &hash);
     MpdStatus();
 
-    virtual QString getDescription() { return QString("status");};
     virtual Type getType() { return Status; };
-    virtual QString getPath() { return QString("status");} ;
 
     bool repeat() { return m_repeat; }
     bool random() { return m_random; }
