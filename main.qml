@@ -23,9 +23,6 @@ import QtQuick.Layouts
 
 import "mpc"
 import "."
-import "widgets"
-import "mpc/mpd.js" as MPD
-
 
 ApplicationWindow {
     id: appwindow

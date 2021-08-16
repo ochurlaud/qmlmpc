@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
-        <file>mpc/mpd.js</file>
         <file>mpc/MpdButton.qml</file>
         <file>mpc/MpdCollectionPanel.qml</file>
         <file>mpc/MpdPanel.qml</file>
