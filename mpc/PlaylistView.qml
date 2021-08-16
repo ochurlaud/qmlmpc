@@ -22,8 +22,6 @@ ScrollView {
         }
         delegate: ItemDelegate {
             width: queueView.width
-            // color: steelblue if selected, else alternating row colors
-            //color:  ListView.isCurrentItem ? Material.accentColor : (index %2 ? "white" : "#ddd")
             Text {
                 id: playIcon
                 text: "\u25B6"
@@ -58,25 +56,25 @@ ScrollView {
                     }
                 }
                 Menu {
-                     id: contextMenu
+                    id: contextMenu
 
-                     MenuItem {
-                         text: qsTr("Play next")
-                         onTriggered: mpdConnector.moveSongAfterCurrent(songId)
-                     }
-                     MenuItem {
-                         text: qsTr("Move first")
-                         onTriggered: mpdConnector.moveSongFirst(songId)
-                     }
-                     MenuItem {
-                         text: qsTr("Move last")
-                         onTriggered: mpdConnector.moveSongLast(songId)
-                     }
-                     MenuItem {
-                         text: qsTr("Remove from playlist")
-                         onTriggered: mpdConnector.removeSong(songId)
-                     }
-                 }
+                    MenuItem {
+                        text: qsTr("Play next")
+                        onTriggered: mpdConnector.moveSongAfterCurrent(songId)
+                    }
+                    MenuItem {
+                        text: qsTr("Move first")
+                        onTriggered: mpdConnector.moveSongFirst(songId)
+                    }
+                    MenuItem {
+                        text: qsTr("Move last")
+                        onTriggered: mpdConnector.moveSongLast(songId)
+                    }
+                    MenuItem {
+                        text: qsTr("Remove from playlist")
+                        onTriggered: mpdConnector.removeSong(songId)
+                    }
+                }
             }
         }
     }

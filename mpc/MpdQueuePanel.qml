@@ -17,13 +17,8 @@
  * along with qmlmpc. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.1
-import QtQuick.Controls 2.15
-
-import ".." // import Style.qml
-import "../widgets"
-import "mpd.js" as MPD
-
+import QtQuick
+import QtQuick.Controls
 
 Pane {
     Column {
@@ -35,7 +30,7 @@ Pane {
         Item {
             id: progressBar
             width: parent.width
-            height: Style.rowHeight/2
+            height: 30
             Rectangle {
                 anchors { fill: parent; margins: 1 }
                 color: Material.primary
@@ -44,16 +39,7 @@ Pane {
                 Rectangle {
                     anchors { left: parent.left; top: parent.top; bottom: parent.bottom}
                     radius: Math.min(4, width/2)
-           //         color: "black"
                     width: mpdConnector.elapsedTime/mpdConnector.totalTime*parent.width
-                    Rectangle {
-                        x: 1
-                        y: 1
-                        width: Math.max(0, parent.width-2)
-                        height: parent.height-2
-                        color: Material.accent
-                        radius: Math.max(0, parent.radius-1)
-                    }
                 }
                 MouseArea {
                     anchors.fill: parent
@@ -62,7 +48,8 @@ Pane {
             }
             Text {
                 anchors.centerIn: parent
-                text: MPD.formatSeconds(mpdConnector.elapsedTime)+" / "+MPD.formatSeconds(mpdConnector.totalTime)
+                text: "%1 / %2".arg(formatSeconds(mpdConnector.elapsedTime))
+                               .arg(formatSeconds(mpdConnector.totalTime))
                 color: Material.foreground
             }
         }
@@ -91,6 +78,19 @@ Pane {
             }
         }
     }
+    function formatSeconds(inputSeconds) {
+        var seconds = inputSeconds % 60
+        var secondsInMinutes = (inputSeconds - seconds) / 60
+        var minutes = secondsInMinutes % 60
+        var hours = (secondsInMinutes - minutes) / 60
+
+        var timeString = ""
+        if (hours > 0) {
+            timeString += "%1:%2:".arg(hours).arg(String(minutes).padStart(2, '0'))
+        } else {
+            timeString += "%1:".arg(minutes)
+        }
+        timeString += String(seconds).padStart(2, '0')
+        return timeString
+    }
 }
-
-
