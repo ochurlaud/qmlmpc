@@ -21,10 +21,13 @@ import QtQuick
 import QtQuick.Controls
 
 Pane {
-    width: parent.width
+    id: root
+
+    signal itemClicked(string type, string itemName)
+    property var model;
+    function loadModel() {}
+
     anchors.fill: parent
-    property var parentList: []
-    property bool isFirstPanel: true
 
     Column {
         width: parent.width
@@ -38,7 +41,7 @@ Pane {
             ListView {
                 id: listView
                 anchors.fill: parent
-                model: mpdConnector.collectionModel
+                model: root.model
                 delegate: ItemDelegate {
                     width: listView.width
                     property bool selected: mpdConnector.collectionModel.isSelected(index)
@@ -52,6 +55,7 @@ Pane {
                         anchors.fill: parent
                         acceptedButtons: Qt.LeftButton | Qt.RightButton
                         Connections {
+                            /*
                             function browse(path, type) {
                                 parentList.push(path)
                                 isFirstPanel = false
@@ -64,10 +68,12 @@ Pane {
                                         mpdConnector.listSongsByArtistAndAlbum(parentList[parentList.length - 2],
                                                                                path)
                                     }
+                                } else if (type === "Playlist") {
+                                    mpdConnector.getPlaylistSongs(path)
                                 } else if (type === "Song" ) {
                                     mpdConnector.appendSong(path)
                                 }
-                            }
+                            }*/
 
                             function menu(path, type) {
                                 if (type === "Song") {
@@ -77,7 +83,7 @@ Pane {
 
                             function onClicked(mouse) {
                                 if (mouse.button === Qt.LeftButton) {
-                                    browse(path, type)
+                                    root.itemClicked(type.toLowerCase(), path)
                                 } else if (mouse.button === Qt.RightButton) {
                                     menu(path, type)
                                 }
@@ -88,7 +94,7 @@ Pane {
                                 }
                             }
                             function onDoubleClicked(mouse) {
-                                browse(path, type)
+                                root.itemClicked(type.toLowerCase(), path)
                             }
                         }
                         Menu {
@@ -140,6 +146,6 @@ Pane {
 
 
     Component.onCompleted: {
-        mpdConnector.listArtists()
+        loadModel()
     }
 }

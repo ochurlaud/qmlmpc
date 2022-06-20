@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("mpdConnector", mpdConnector);
     engine.rootContext()->setContextProperty("settings", settings);
-    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+    engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
 
     return app.exec();
 }

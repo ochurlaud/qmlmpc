@@ -119,6 +119,9 @@ MpdArtist::MpdArtist(const QMultiHash<QByteArray,QByteArray>& hash)
 MpdAlbum::MpdAlbum(const QMultiHash<QByteArray,QByteArray>& hash)
 {
     m_name = hash.value("album");
+    if (m_name.isEmpty()) {
+        m_name = "Unknown Album";
+    }
 }
 
 QSharedPointer<MpdSong> MpdSongList::getSongById(int songId)

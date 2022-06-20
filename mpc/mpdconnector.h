@@ -76,6 +76,7 @@ public:
     QString getCurrentCollectionPath() { return m_currentCollectionPath; }
 
     QObject *getConnection() { return (QObject*) p_connection; }
+    MusicPlayerConnection *getConnection2() { return p_connection; }
 
     QObject *getQueueModel() { return (QObject*) p_queueModel; }
     QObject *getPlaylistsModel() { return (QObject*) p_playlistsModel; }
@@ -119,7 +120,8 @@ public slots:
     void listAlbums();
     void listAlbums(const QString& artist);
     void listSongsByArtistAndAlbum(const QString& artist, const QString& album);
-    void renewPlaylists();
+    void listPlaylists();
+    void listSongsByPlaylist(const QString& playlist);
     void getPlaylistSongs(const QString& playlist);
     void search(const QString& query, const QString& scope);
     

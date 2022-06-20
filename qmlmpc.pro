@@ -6,8 +6,15 @@ QT += quickcontrols2
 
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x050F00
 
+CONFIG += qmltypes
+QML_IMPORT_NAME = org.qmlmpc
+QML_IMPORT_MAJOR_VERSION = 1
+INCLUDEPATH += mpc/models
+
 SOURCES += main.cpp \
-    mpc/datamodels.cpp \
+    mpc/models/mpdcollectionmodel.cpp \
+    mpc/models/mpdentitylistmodel.cpp \
+    mpc/models/mpdsonglistmodel.cpp \
     mpc/mpdconnector.cpp \
     mpc/mpdparser.cpp \
     mpc/mpdrequest.cpp \
@@ -24,7 +31,9 @@ QML_IMPORT_PATH =
 #include(deployment.pri)
 
 HEADERS += \
-    mpc/datamodels.h \
+    mpc/models/mpdcollectionmodel.h \
+    mpc/models/mpdentitylistmodel.h \
+    mpc/models/mpdsonglistmodel.h \
     mpc/mpdconnector.h \
     mpc/mpdparser.h \
     mpc/mpdrequest.h \

@@ -20,7 +20,9 @@
 #include "mpdconnector.h"
 
 #include "musicplayerconnection.h"
-#include "datamodels.h"
+#include "models/mpdentitylistmodel.h"
+#include "models/mpdsonglistmodel.h"
+#include "models/mpdcollectionmodel.h"
 #include "mpdrequest.h"
 
 #define SIMPLE_REQUEST(func) MpdRequest *req = p_connection->func; if (req) connect(req, SIGNAL(resultReady()), p_connection, SLOT(debugAndDelete()));
@@ -180,7 +182,7 @@ void MpdConnector::songListingReady()
     request->deleteLater();
 }
 
-void MpdConnector::renewPlaylists()
+void MpdConnector::listPlaylists()
 {
     MpdRequest *request = p_connection->listPlaylists();
     connect(request, SIGNAL(resultReady()), SLOT(playlistsReady()));
@@ -193,13 +195,20 @@ void MpdConnector::playlistsReady()
         QList<QSharedPointer<MpdObject>> response = request->getResponse();
         MpdEntityList entityList;
         for (auto obj : response) {
-            entityList.append(obj.dynamicCast<MpdSong>());
+            entityList.append(obj.dynamicCast<MpdEntity>());
         }
-        p_playlistsModel->setEntityList(entityList);
+        p_collectionModel->setEntityList(entityList);
     } else {
         qDebug("listPlaylists got an ACK: '%s'", qPrintable(request->getAck()));
     }
     request->deleteLater();
+}
+
+void MpdConnector::listSongsByPlaylist(const QString& playlist)
+{
+    p_collectionModel->setEntityList(MpdEntityList());
+    MpdRequest *request = p_connection->getPlaylistSongs(playlist);
+    connect(request, SIGNAL(resultReady()), SLOT(songListingReady()));
 }
 
 void MpdConnector::getPlaylistSongs(const QString& playlist)

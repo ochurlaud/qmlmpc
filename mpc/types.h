@@ -164,7 +164,7 @@ class MpdPlaylist : public MpdEntity
 {
 public:
     MpdPlaylist(const QMultiHash<QByteArray,QByteArray>& hash);
-    Type getType() { return Playlist; }
+    virtual Type getType() { return Playlist; }
     virtual QString getDescription() { return m_name; }
     QString getName() { return m_name; }
     QString getPath() { return m_name; }

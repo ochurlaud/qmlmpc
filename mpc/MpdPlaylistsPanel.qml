@@ -30,7 +30,7 @@ Rectangle {
     property string selectedPlaylist
     property alias selectedPath: playlistSongsView.selectedPath
 
-    onVisibleChanged: if (visible) { mpdConnector.renewPlaylists(); selectedPlaylist = ""; selectedPath = "" }
+    onVisibleChanged: if (visible) { mpdConnector.listPlaylists(); selectedPlaylist = ""; selectedPath = "" }
     onSelectedPlaylistChanged: mpdConnector.getPlaylistSongs(selectedPlaylist)
 
     Row{
@@ -94,7 +94,7 @@ Rectangle {
                         if (text=="")
                             return prompt("Enter a new name for the playlist \""+selectedPlaylist+"\":", renameButton)
                         mpdConnector.renamePlaylist(selectedPlaylist, text)
-                        mpdConnector.renewPlaylists()
+                        mpdConnector.listPlaylists()
                         selectedPlaylist = text // keep the playlist selected, but under the new name
                     }
                 }
@@ -107,7 +107,7 @@ Rectangle {
                     onClicked: confirm("Are you sure you want to delete the playlist \""+selectedPlaylist+"\"?", deleteButton)
                     function onConfirmed() { // called when the confirm dialog --^ is confirmed
                         mpdConnector.removePlaylist(selectedPlaylist)
-                        mpdConnector.renewPlaylists()
+                        mpdConnector.listPlaylists()
                         selectedPlaylist = ""
                     }
                 }

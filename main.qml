@@ -1,21 +1,3 @@
-/*
- * Copyright 2015, Maarten Sebregts <maartensebregts AT gmail DOT com>
- *
- * This file is part of qmlmpc.
- *
- * qmlmpc is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * qmlmpc is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with qmlmpc. If not, see <http://www.gnu.org/licenses/>.
- */
 
 import QtQuick
 import QtQuick.Controls
@@ -36,7 +18,8 @@ ApplicationWindow {
     }
     menuBar: ToolBar {
         id: menuToolBar
-        contentHeight: toolButton1.implicitHeight
+        contentHeight: settingsButton.implicitHeight
+
         Item {
             anchors.centerIn: parent
             Loader {
@@ -44,113 +27,44 @@ ApplicationWindow {
                 id: toolbarCentralItem
             }
         }
+
         ToolButton {
-            id: toolButton1
-            text: "\u2630"
-            font.pixelSize: Qt.application.font.pixelSize * 1.6
-            onClicked: drawer.open()
+            id: backButton
+            anchors.left: parent.left
+            icon.name: "draw-arrow-back"
+            icon.color: mainStack.depth > 1 ? Material.foreground : Qt.alpha(Material.foreground, 0.3)
+            onClicked: if (mainStack.depth > 1) { mainStack.pop() }
+        }
+
+        ToolButton {
+            id: settingsButton
+            anchors.left: backButton.right
+            icon.name: "settings-configure"
+            onClicked: mainStack.push(settingspanel)
         }
         ToolButton {
-            id: search
+            id: searchButton
             anchors.right: parent.right
-            text: "\uD83D\uDD0D"
-            font.pixelSize: Qt.application.font.pixelSize * 1.6
+            icon.name: "search"
             onClicked: mainStack.push(searchpanel)
         }
     }
 
-    Drawer {
-        id: drawer
-        height: appwindow.height
-        width: appwindow.width * 0.66
-        Column {
-            anchors.fill: parent
-            ItemDelegate {
-                width: parent.width
-                text: qsTr("Browse collection")
-                onClicked: {
-                    mainStack.pop()
-                    mainStack.push(collectionPanelComponent)
-                    drawer.close()
-                }
-            }
-            ItemDelegate {
-                width: parent.width
-                text: qsTr("Queue")
-                onClicked: {
-                    mainStack.pop()
-                    drawer.close()
-                }
-            }
-            ItemDelegate {
-                width: parent.width
-                text: qsTr("Settings")
-                onClicked: {
-                    mainStack.pop()
-                    mainStack.push(settingsPanel)
-                    drawer.close()
-                }
-            }
+    footer: MpdViewSelector {
+        width: parent.width
+        buttonView: "queue"
+        onButtonViewChanged: {
+            console.log("buttonViewChanged:", buttonView)
+            mainStack.clear()
+            pushView(buttonView)
         }
-    }
-
-    footer:  Row {
-        Button {
-            id: previous
-            icon.name:"media-skip-backward"
-            onClicked: mpdConnector.previous()
-        }
-        Button {
-            id: play
-            visible: !mpdConnector.playing
-            icon.name: "media-playback-start"
-            onClicked: mpdConnector.play()
-        }
-        Button {
-            id: pause
-            visible: mpdConnector.playing
-            icon.name: "media-playback-pause"
-            onClicked: mpdConnector.pause()
-        }
-        Button {
-            id: stop
-            icon.name: "media-playback-stop"
-            onClicked: mpdConnector.stop()
-        }
-        Button {
-            id: next
-            icon.name:"media-skip-forward"
-            onClicked: mpdConnector.next()
-        }
-        Button {
-            id: repeat
-            checked: mpdConnector.repeating
-            icon.name: "media-playlist-repeat"
-            onClicked: mpdConnector.repeat(!checked)
-        }
-        Button {
-            id: shuffle
-            checked: mpdConnector.shuffling
-            icon.name: "media-playlist-shuffle"
-            onClicked: mpdConnector.random(!checked)
-        }
-
     }
 
     StackView {
         id: mainStack
         anchors.fill: parent
 
-        initialItem: queuePanelComponent
-    }
-    Component {
-        id: queuePanelComponent
-        MpdQueuePanel {}
-    }
-
-    Component {
-        id: collectionPanelComponent
-        MpdCollectionPanel {}
+        initialItem: "qrc:///mpc/MpdQueuePanel.qml"
     }
 
     SettingsPanel {
@@ -177,5 +91,31 @@ ApplicationWindow {
         toolbarCentralItem.sourceComponent = mainToolbarTitle
     }
 
-
+    function pushView(viewType, name="") {
+        switch (viewType) {
+        case "queue":
+            mainStack.push("qrc:///mpc/MpdQueuePanel.qml")
+            break;
+        case "playlist":
+            mainStack.push(collectionPanelComponent)
+            mainStack.currentItem.itemClicked.connect(function (a,b){
+                pushView(type, name=name)
+            })
+            break;
+        case "artist":
+            mainStack.push("qrc:///mpc/MpdCollectionArtistsPanel.qml")
+            mainStack.currentItem.itemClicked.connect(function (type, name){
+                console.log(type,name)
+                pushView("album", name=name)
+            })
+            break;
+        case "album":
+            mainStack.push("qrc:///mpc/MpdCollectionAlbumsPanel.qml", {"artist": name})
+            mainStack.currentItem.itemClicked.connect(function (type, name){
+                console.log(type,name)
+                pushView("songs", name=name)
+            })
+            break;
+        }
+    }
 }

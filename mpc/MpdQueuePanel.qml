@@ -19,6 +19,7 @@
 
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 
 Pane {
     Column {
@@ -56,7 +57,7 @@ Pane {
 
         PlaylistView {
             width: parent.width
-            height: parent.height - progressBar.height - buttonrow.height
+            height: parent.height - progressBar.height - buttonrow.height - playbackControls.height
         }
 
         //Future FEATURE
@@ -76,6 +77,12 @@ Pane {
                 text: "Scroll to selected song"
                 onClicked: queueView.positionViewAtIndex(queueView.currentIndex, ListView.Visible)
             }
+        }
+
+        MpdPlaybackControls {
+            id: playbackControls
+            width: 0.8* parent.width
+            anchors.horizontalCenter: parent.horizontalCenter
         }
     }
     function formatSeconds(inputSeconds) {
