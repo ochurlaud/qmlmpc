@@ -4,8 +4,8 @@ import QtQuick.Controls 2.5
 
 Pane {
     id: settingsView
-    visible: false
-    anchors.fill: parent
+
+    property var mpdConnectionDetails: settings.mpdConnectionDetails("default")
     signal closeRequested()
     Column {
         anchors.fill: parent
@@ -21,12 +21,14 @@ Pane {
                 text: "Connection settings to MPD server"
                 font.pointSize: 16
             }
+            Label { text: "Name" }
+            TextField { id: mpdName; text: "default" ; }
             Label { text: "Host" }
-            TextField { id: mpdHost; text: settings.value("mpd/host") ; }
+            TextField { id: mpdHost; text: mpdConnectionDetails.host ; }
             Label { text: "Port" }
-            TextField { id: mpdPort; text: settings.value("mpd/port"); }
+            TextField { id: mpdPort; text: mpdConnectionDetails.port ; inputMethodHints: Qt.ImhDigitsOnly ; validator: IntValidator {bottom: 0; top: 65535;} }
             Label { text: "Password" }
-            TextField { id: mpdPassword; echoMode: TextInput.Password; text: settings.value("mpd/password") ;}
+            TextField { id: mpdPassword; echoMode: TextInput.Password; text: mpdConnectionDetails.password ;}
         }
         Row {
             spacing: 20
@@ -41,21 +43,28 @@ Pane {
         }
     }
     function resetSettings() {
-        mpdHost.text = settings.value("mpd/host")
-        mpdPort.text = settings.value("mpd/port")
-        mpdPassword.text = settings.value("mpd/password")
+        mpdConnectionDetails = settings.mpdConnectionDetails("default")
+        mpdHost.text = mpdConnectionDetails.host
+        mpdPort.text = mpdConnectionDetails.port
+        mpdPassword.text = mpdConnectionDetails.password
     }
 
     function discardSettings() {
         console.log("discard")
-        settingsView.closeRequested();
+        resetSettings()
+        settingsView.closeRequested()
     }
 
     function saveSettings() {
-        settings.setValue("mpd/host", mpdHost.text)
-        settings.setValue("mpd/port", mpdPort.text)
-        settings.setValue("mpd/password", mpdPassword.text)
-        mpdConnector.connection.reconnect(mpdHost.text, Number(mpdPort.text), mpdPassword.text)
+        settings.setValue("mpd/default/host", mpdHost.text)
+        settings.setValue("mpd/default/port", mpdPort.text)
+        settings.setValue("mpd/default/password", mpdPassword.text)
+        mpdConnectionDetails.host = mpdHost.text
+        mpdConnectionDetails.port = Number(mpdPort.text)
+        mpdConnectionDetails.password = mpdPassword.text
+        settings.setMpdConnectionDetails(mpdName.text, mpdConnectionDetails)
+
+        mpdConnector.connection.reconnect(mpdName.text)
         settingsView.closeRequested();
     }
 }

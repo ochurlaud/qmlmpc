@@ -3,7 +3,6 @@
         <file>main.qml</file>
         <file>mpc/MpdButton.qml</file>
         <file>mpc/MpdCollectionPanel.qml</file>
-        <file>mpc/MpdPanel.qml</file>
         <file>mpc/MpdQueuePanel.qml</file>
         <file>mpc/MpdSearchPanel.qml</file>
         <file>mpc/MpdSelectedSong.qml</file>
@@ -20,5 +19,6 @@
         <file>mpc/MpdCollectionArtistsPanel.qml</file>
         <file>mpc/MpdCollectionAlbumsPanel.qml</file>
         <file>mpc/MpdCollectionSongsPanel.qml</file>
+        <file>mpc/MpdCollectionPlaylistsPanel.qml</file>
     </qresource>
 </RCC>

@@ -1,10 +1,18 @@
 import QtQuick 2.0
+import org.qmlmpc
 
 MpdCollectionPanel {
-    property string artist: ""
-    property string album: ""
+    property alias artist: model.artist
+    property alias album: model.album
+    property alias playlist: model.playlist
 
-    Component.onCompleted: {
-        mpdConnector.listSongsByArtistAndAlbum(artist, album)
+    function loadModel() {
+        model.mpdConnector = mpdConnector
+        model.queryContent()
+    }
+
+    model: MpdCollectionSongsModel {
+        id: model
+        //mpdConnector: mpdConnector
     }
 }

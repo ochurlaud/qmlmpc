@@ -24,18 +24,20 @@
 
 #include "settings.h"
 #include "mpc/mpdconnector.h"
+#include "mpc/musicplayerconnection.h"
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    Settings *settings = new Settings(&app);
+    Settings* settings = new Settings(&app);
+    QMap<QString, MpdConnectionDetails> allMpdConnectionDetails = settings->allMpdConnectionDetails();
+    MpdConnector *mpdConnector = new MpdConnector();
 
-    MpdConnector *mpdConnector = new MpdConnector(
-                settings->value("mpd/host").toString(),
-                settings->value("mpd/port").toInt(),
-                settings->value("mpd/password").toString()
-                );
+    for (QMap<QString, MpdConnectionDetails>::iterator i = allMpdConnectionDetails.begin() ; i != allMpdConnectionDetails.end() ; ++i) {
+        mpdConnector->getConnection2()->addConnection(i.key(), i.value());
+    }
+    mpdConnector->getConnection2()->connectServer("default");
 
     QQuickStyle::setStyle("Material");
 

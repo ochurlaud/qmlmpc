@@ -131,9 +131,11 @@ public:
     virtual Type getType() { return Album; }
     virtual QString getDescription() { return m_name; }
     QString getPath() { return m_name; }
+  //  QString getArtist() const { return m_artist; }
 
 private:
     QString m_name;
+  //  QString m_artist;
 };
 
 class MpdArtist : public MpdEntity

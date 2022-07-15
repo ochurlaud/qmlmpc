@@ -23,6 +23,18 @@
 #include <QObject>
 #include <QSettings>
 
+struct MpdConnectionDetails {
+    Q_GADGET
+    Q_PROPERTY(QString host MEMBER host)
+    Q_PROPERTY(int port MEMBER port)
+    Q_PROPERTY(QString password MEMBER password)
+
+public:
+    QString host;
+    int port;
+    QString password;
+};
+
 class Settings : public QObject
 {
     Q_OBJECT
@@ -31,8 +43,14 @@ public:
 
     Q_INVOKABLE void setValue(const QString & key, const QVariant & value);
     Q_INVOKABLE QVariant value(const QString & key, const QVariant & defaultValue = QVariant()) const;
+    Q_INVOKABLE const MpdConnectionDetails mpdConnectionDetails(const QString& serverName) const;
+    Q_INVOKABLE void setMpdConnectionDetails(const QString& serverName, const MpdConnectionDetails& mpdConnectionDetails);
+
+    const QMap<QString, MpdConnectionDetails> allMpdConnectionDetails() const;
+
 
 private:
+    void setDefaultSetting();
     QSettings* p_settings;
 };
 

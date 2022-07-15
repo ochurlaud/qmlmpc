@@ -1,7 +1,7 @@
 
-#include "mpdcollectionmodel.h"
+#include "mpdcollectionartistsmodel.h"
 
-MpdCollectionModel::MpdCollectionModel(QObject *parent) :
+MpdCollectionArtistsModel::MpdCollectionArtistsModel(QObject *parent) :
     MpdEntityListModel(parent)
 {
     p_roles[Qt::UserRole] = "description";
@@ -9,15 +9,13 @@ MpdCollectionModel::MpdCollectionModel(QObject *parent) :
     p_roles[Qt::UserRole+2] = "path";
 }
 
-void MpdCollectionModel::setEntityList(MpdEntityList list)
+void MpdCollectionArtistsModel::setEntityList(MpdEntityList list)
 {
     beginResetModel();
     m_list = MpdEntityList();
     m_selectedIndices.clear();
     for (int i=0; i<list.length(); i++) {
         MpdEntity::Type t = list.at(i)->getType();
-        qDebug() << t <<  MpdEntity::Artist;
-        qDebug() << list.at(i)->getPath();
         if (t == MpdEntity::Directory ||
             t == MpdEntity::Song ||
             t == MpdEntity::Artist ||
@@ -32,7 +30,7 @@ void MpdCollectionModel::setEntityList(MpdEntityList list)
 
 }
 
-bool MpdCollectionModel::isSelected(int index) const
+bool MpdCollectionArtistsModel::isSelected(int index) const
 {
     if (index >= 0 && m_selectedIndices.size() > index) {
         return m_selectedIndices.at(index);
@@ -41,7 +39,7 @@ bool MpdCollectionModel::isSelected(int index) const
     }
 }
 
-int MpdCollectionModel::getNumSelectedSongs() const
+int MpdCollectionArtistsModel::getNumSelectedSongs() const
 {
     int num = 0;
     for (int i=0; i<m_selectedIndices.length(); i++)
@@ -50,7 +48,7 @@ int MpdCollectionModel::getNumSelectedSongs() const
     return num;
 }
 
-int MpdCollectionModel::getNumSelectedDirectories() const
+int MpdCollectionArtistsModel::getNumSelectedDirectories() const
 {
     int num = 0;
     for (int i=0; i<m_selectedIndices.length(); i++)
@@ -59,7 +57,7 @@ int MpdCollectionModel::getNumSelectedDirectories() const
     return num;
 }
 
-QStringList MpdCollectionModel::getSelectedPaths() const
+QStringList MpdCollectionArtistsModel::getSelectedPaths() const
 {
     QStringList paths;
     for (int i=0; i<m_selectedIndices.length(); i++)
@@ -68,7 +66,7 @@ QStringList MpdCollectionModel::getSelectedPaths() const
     return paths;
 }
 
-QVariant MpdCollectionModel::data(const QModelIndex &index, int role) const
+QVariant MpdCollectionArtistsModel::data(const QModelIndex &index, int role) const
 {
     if (role == Qt::UserRole+2) {
         return m_list.at(index.row())->getPath();
@@ -76,22 +74,46 @@ QVariant MpdCollectionModel::data(const QModelIndex &index, int role) const
     return MpdEntityListModel::data(index, role);
 }
 
-void MpdCollectionModel::toggleSelection(int index)
+void MpdCollectionArtistsModel::toggleSelection(int index)
 {
     m_selectedIndices[index] = !m_selectedIndices[index];
     emit selectionChanged();
 }
 
-void MpdCollectionModel::selectAll()
+void MpdCollectionArtistsModel::selectAll()
 {
     for (int i=0; i<m_selectedIndices.length(); i++)
         m_selectedIndices[i] = true;
     emit selectionChanged();
 }
 
-void MpdCollectionModel::deselectAll()
+void MpdCollectionArtistsModel::deselectAll()
 {
     for (int i=0; i<m_selectedIndices.length(); i++)
         m_selectedIndices[i] = false;
     emit selectionChanged();
 }
+
+
+void MpdCollectionArtistsModel::queryContent()
+{
+    this->setEntityList(MpdEntityList());
+    MpdRequest *request = m_mpdConnector->getConnection2()->listArtists();
+    connect(request, &MpdRequest::resultReady, this, &MpdCollectionArtistsModel::contentReady);
+}
+
+void MpdCollectionArtistsModel::contentReady()
+{
+       MpdRequest *request = qobject_cast<MpdRequest*>(sender());
+       if (request->succesfull()) {
+           QList<QSharedPointer<MpdObject>> response = request->getResponse();
+           MpdEntityList entityList;
+           for (auto obj : response) {
+               entityList.append(obj.dynamicCast<MpdEntity>());
+           }
+           this->setEntityList(entityList);
+       } else {
+           qDebug("listArtists got an ACK: '%s'", qPrintable(request->getAck()));
+       }
+       request->deleteLater();
+   }

@@ -19,18 +19,34 @@
 
 #include "settings.h"
 
-#include <QDebug>
+static const char mpdGroup[] = "mpd";
+static const char defaultServerName[] = "default";
+static const char hostKey[] = "host";
+static const char portKey[] = "port";
+static const char passwordKey[] = "password";
 
-#define setDefaultSetting(key, value) if (!p_settings->contains(key)) { p_settings->setValue(key, value); }
+static const QString getHostKey(const QString& serverName) {
+    return QStringLiteral("%1/%2/%3").arg(mpdGroup, serverName, hostKey);
+}
+static const QString getPortKey(const QString& serverName) {
+    return QStringLiteral("%1/%2/%3").arg(mpdGroup, serverName, portKey);
+}
+static const QString getPasswordKey(const QString& serverName) {
+    return QStringLiteral("%1/%2/%3").arg(mpdGroup, serverName, passwordKey);
+}
+static const QString decodePassword(const QByteArray& encodedPassword) {
+    return QString(QByteArray::fromBase64(encodedPassword));
+}
+static const QString encodePassword(const QString& password) {
+    return password.toUtf8().toBase64();
+}
 
 Settings::Settings(QObject *parent) :
     QObject(parent)
 {
     p_settings = new QSettings("qmlmpc", "qmlmpc", this);
     // mpd connection
-    setDefaultSetting("mpd/host", "localhost");
-    setDefaultSetting("mpd/port", 6600);
-    setDefaultSetting("mpd/password", "");
+    setDefaultSetting();
     p_settings->sync();
 }
 
@@ -43,4 +59,63 @@ void Settings::setValue(const QString &key, const QVariant &value)
 QVariant Settings::value(const QString &key, const QVariant &defaultValue) const
 {
     return p_settings->value(key, defaultValue);
+}
+
+const MpdConnectionDetails Settings::mpdConnectionDetails(const QString& serverName) const
+{
+    MpdConnectionDetails mpdConnectionDetails;
+    mpdConnectionDetails.host = p_settings->value(getHostKey(serverName)).toString();
+    mpdConnectionDetails.port = p_settings->value(getPortKey(serverName)).toInt();
+    mpdConnectionDetails.password = decodePassword(p_settings->value(getPasswordKey(serverName)).toByteArray());
+    return mpdConnectionDetails;
+}
+
+void Settings::setMpdConnectionDetails(const QString& serverName, const MpdConnectionDetails& mpdConnectionDetails)
+{
+    p_settings->setValue(getHostKey(serverName), mpdConnectionDetails.host);
+    p_settings->setValue(getPortKey(serverName), mpdConnectionDetails.port);
+    p_settings->setValue(getPasswordKey(serverName), encodePassword(mpdConnectionDetails.password));
+    p_settings->sync();
+}
+
+
+const QMap<QString, MpdConnectionDetails> Settings::allMpdConnectionDetails() const
+{
+    QMap<QString, MpdConnectionDetails> connectionDetailsMap;
+    p_settings->beginGroup(mpdGroup);
+    const QStringList& serverNames = p_settings->childGroups();
+    p_settings->endGroup();
+    for (const QString& serverName : serverNames) {
+        connectionDetailsMap[serverName] = this->mpdConnectionDetails(serverName);
+    }
+    return connectionDetailsMap;
+}
+
+void Settings::setDefaultSetting()
+{
+    bool aServerIsDefined = false;
+
+    if (p_settings->childGroups().contains(mpdGroup)) {
+        p_settings->beginGroup(mpdGroup);
+        const QStringList& mpdServers = p_settings->childGroups();
+        if (!mpdServers.isEmpty()) {
+            p_settings->beginGroup(mpdServers.first());
+            const QStringList& serverConfigKeys = p_settings->childKeys();
+            if (serverConfigKeys.contains(hostKey) &&
+                    serverConfigKeys.contains(portKey) &&
+                    serverConfigKeys.contains(passwordKey)) {
+                // Everything is fine, we have at least a "correct" settings
+                aServerIsDefined = true;
+            }
+            p_settings->endGroup();
+        }
+        p_settings->endGroup();
+    }
+
+    if (!aServerIsDefined) {
+        p_settings->setValue(QStringLiteral("%1/%2/%3").arg(mpdGroup, defaultServerName, hostKey), "localhost");
+        p_settings->setValue(QStringLiteral("%1/%2/%3").arg(mpdGroup, defaultServerName, portKey), 6600);
+        p_settings->setValue(QStringLiteral("%1/%2/%3").arg(mpdGroup, defaultServerName, passwordKey), "");
+    }
+    // If we get to this part, it means that the settings are not setup correctly
 }

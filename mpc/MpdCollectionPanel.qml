@@ -1,22 +1,3 @@
-/*
- * Copyright 2015, Maarten Sebregts <maartensebregts AT gmail DOT com>
- *
- * This file is part of qmlmpc.
- *
- * qmlmpc is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * qmlmpc is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with qmlmpc. If not, see <http://www.gnu.org/licenses/>.
- */
-
 import QtQuick
 import QtQuick.Controls
 
@@ -26,8 +7,6 @@ Pane {
     signal itemClicked(string type, string itemName)
     property var model;
     function loadModel() {}
-
-    anchors.fill: parent
 
     Column {
         width: parent.width
@@ -44,43 +23,24 @@ Pane {
                 model: root.model
                 delegate: ItemDelegate {
                     width: listView.width
-                    property bool selected: mpdConnector.collectionModel.isSelected(index)
+                    property bool selected: false /*model.isSelected(index)
                     Connections {
                         target: mpdConnector.collectionModel
                         function onSelectionChanged() {
-                            selected = mpdConnector.collectionModel.isSelected(index)
+                            selected = model.isSelected(index)
                         }
-                    }
+                    }*/
+
                     MouseArea {
+                        id: itemDelegateMouseArea
                         anchors.fill: parent
                         acceptedButtons: Qt.LeftButton | Qt.RightButton
                         Connections {
-                            /*
-                            function browse(path, type) {
-                                parentList.push(path)
-                                isFirstPanel = false
-                                if (type === "Directory") {
-                                    mpdConnector.listDirectory(path)
-                                } else if (type === "Artist") {
-                                    mpdConnector.listAlbums(path)
-                                } else if (type === "Album") {
-                                    if (parentList.length > 1) {
-                                        mpdConnector.listSongsByArtistAndAlbum(parentList[parentList.length - 2],
-                                                                               path)
-                                    }
-                                } else if (type === "Playlist") {
-                                    mpdConnector.getPlaylistSongs(path)
-                                } else if (type === "Song" ) {
-                                    mpdConnector.appendSong(path)
-                                }
-                            }*/
-
                             function menu(path, type) {
                                 if (type === "Song") {
                                     contextMenu.popup()
                                 }
                             }
-
                             function onClicked(mouse) {
                                 if (mouse.button === Qt.LeftButton) {
                                     root.itemClicked(type.toLowerCase(), path)

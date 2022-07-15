@@ -11,7 +11,7 @@ ApplicationWindow {
     visible: true
 
     property MpdSelectedSong selectedSong: selectedSong
-    property string toolbarTitle: "QMLMPC"
+    property string toolbarTitle: "QMLMPC - " + mpdConnector.connection.connectedServer
 
     MpdSelectedSong {
         id: selectedSong
@@ -46,7 +46,7 @@ ApplicationWindow {
             id: searchButton
             anchors.right: parent.right
             icon.name: "search"
-            onClicked: mainStack.push(searchpanel)
+            onClicked: mainStack.push("qrc:///mpc/MpdSearchPanel.qml")
         }
     }
 
@@ -91,30 +91,46 @@ ApplicationWindow {
         toolbarCentralItem.sourceComponent = mainToolbarTitle
     }
 
-    function pushView(viewType, name="") {
+    function pushView(viewType, name="", parentView="") {
         switch (viewType) {
         case "queue":
             mainStack.push("qrc:///mpc/MpdQueuePanel.qml")
             break;
         case "playlist":
-            mainStack.push(collectionPanelComponent)
-            mainStack.currentItem.itemClicked.connect(function (a,b){
-                pushView(type, name=name)
+            mainStack.push("qrc:///mpc/MpdCollectionPlaylistsPanel.qml")
+            mainStack.currentItem.itemClicked.connect(function (type, name){
+                pushView("songs", name=name, parentView="playlist")
             })
             break;
         case "artist":
             mainStack.push("qrc:///mpc/MpdCollectionArtistsPanel.qml")
             mainStack.currentItem.itemClicked.connect(function (type, name){
-                console.log(type,name)
                 pushView("album", name=name)
             })
             break;
         case "album":
             mainStack.push("qrc:///mpc/MpdCollectionAlbumsPanel.qml", {"artist": name})
             mainStack.currentItem.itemClicked.connect(function (type, name){
-                console.log(type,name)
-                pushView("songs", name=name)
+                pushView("songs", name=name, parentView="album")
             })
+            break;
+        case "songs":
+            if (parentView === "album") {
+                var namelist = name.split('@')
+                var album = namelist[0]
+                var artist = namelist[1]
+                mainStack.push("qrc:///mpc/MpdCollectionSongsPanel.qml", {"artist": artist, "album": album})
+                mainStack.currentItem.itemClicked.connect(function (type, name){
+                  //  pushView("songs", name=name)
+                })
+            }
+            else if (parentView === "playlist") {
+                mainStack.push("qrc:///mpc/MpdCollectionSongsPanel.qml", {"playlist": name})
+                mainStack.currentItem.itemClicked.connect(function (type, name){
+                  //  pushView("songs", name=name)
+                })
+            }
+
             break;
         }
     }

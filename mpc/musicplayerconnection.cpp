@@ -25,14 +25,11 @@
 
 #include "mpdrequest.h"
 
-MusicPlayerConnection::MusicPlayerConnection(const QString& host, int port, const QString& password, QObject *parent) :
+MusicPlayerConnection::MusicPlayerConnection(QObject *parent) :
     QObject(parent),
     p_waitingRequest(0),
     m_connected(false)
 {
-    m_host = host;
-    m_port = port;
-    m_password = password;
     p_socket = new QTcpSocket(this);
 
     connect(p_socket, SIGNAL(readyRead()), this, SLOT(dataReady()));
@@ -48,8 +45,25 @@ MusicPlayerConnection::MusicPlayerConnection(const QString& host, int port, cons
     connect(sendMessagesTimer, SIGNAL(timeout()), SLOT(sendNextRequest()));
     sendMessagesTimer->setInterval(1000); // if a sendNextRequest had failed, it won't be resend without this timer
     sendMessagesTimer->start();
+}
 
-    p_socket->connectToHost(host, port);
+void MusicPlayerConnection::connectServer(const QString& serverName) {
+     m_currentConnectionDetails = m_connectionDetailsStore[serverName];
+     m_connectedServer = serverName;
+     if (p_socket->isOpen())
+         disconnect();
+     p_socket->connectToHost(m_currentConnectionDetails.host, m_currentConnectionDetails.port);
+
+}
+
+void MusicPlayerConnection::addConnection(const QString& name, const QString& host, int port, const QString& password)
+{
+    MpdConnectionDetails connectionDetails { .host = host, .port = port, .password = password };
+    m_connectionDetailsStore[name] = connectionDetails;
+}
+
+void MusicPlayerConnection::addConnection(const QString& name, const MpdConnectionDetails &connectionDetails) {
+    m_connectionDetailsStore[name] = connectionDetails;
 }
 
 MpdRequest *MusicPlayerConnection::request(const QString &mpdCommand)
@@ -249,6 +263,7 @@ MpdRequest *MusicPlayerConnection::listAlbums(const QString& artist)
 
 MpdRequest *MusicPlayerConnection::listAlbums()
 {
+//   QString mpdCommand = QStringLiteral("list albumartist group album");
     QString mpdCommand = QStringLiteral("list album");
     return this->request(mpdCommand);
 }
@@ -257,6 +272,12 @@ MpdRequest *MusicPlayerConnection::listSongsByArtistAndAlbum(const QString& arti
 {
     QString mpdCommand = QStringLiteral("find \"((Artist == \\\"%1\\\") AND (Album == \\\"%2\\\"))\" ")
             .arg(artist, album);
+    return this->request(mpdCommand);
+}
+
+MpdRequest *MusicPlayerConnection::listSongsByAlbum(const QString& album)
+{
+    QString mpdCommand = QStringLiteral("find \"(Album == \\\"%2\\\")\" ").arg(album);
     return this->request(mpdCommand);
 }
 
@@ -286,7 +307,7 @@ MpdRequest *MusicPlayerConnection::getPlaylistSongs(const QString& playlist)
 
 MpdRequest *MusicPlayerConnection::search(const QString& query, const QString& scope)
 {
-    QString mpdCommand = QStringLiteral("search \"%1\" \"%2\"").arg(scope, query);
+    QString mpdCommand = QStringLiteral("search \"(%1 contains \\\"%2\\\" )\" ").arg(scope, query);
     return this->request(mpdCommand);
 }
 
@@ -302,18 +323,12 @@ void MusicPlayerConnection::debugAndDelete()
 void MusicPlayerConnection::reconnect()
 {
     if (!p_socket->isOpen())
-        p_socket->connectToHost(m_host, m_port);
+        p_socket->connectToHost(m_currentConnectionDetails.host, m_currentConnectionDetails.port);
 }
 
-void MusicPlayerConnection::reconnect(const QString& host, int port, const QString& password)
+void MusicPlayerConnection::reconnect(const QString& serverName)
 {
-    if (p_socket->isOpen())
-        disconnect();
-    m_host = host;
-    m_port = port;
-    m_password = password;
-    qDebug() << host << port;
-    p_socket->connectToHost(host, port);
+    connectServer(serverName);
 }
 
 void MusicPlayerConnection::disconnect()
@@ -331,8 +346,9 @@ void MusicPlayerConnection::dataReady()
         data = p_socket->readLine();
         if (data.startsWith("OK MPD")) {
             m_connected = true;
+            m_protocolVersion = data.remove(data.size()-1, 1).split(' ')[2]; // OK MPD X.Y.Z\n => X.Y.Z
             emit connectedChanged();
-            qDebug() << "Connected: OK MPD";
+            qDebug("Connected: OK MPD, protocol version=%s", qPrintable(m_protocolVersion));
             p_timer->start();
         } else {
             qDebug("Expected MPD welcome message, but got '%s'", data.constData());
@@ -340,12 +356,13 @@ void MusicPlayerConnection::dataReady()
             return;
         }
     }
-    if (!p_waitingRequest) {
-        qDebug("%s", p_socket->readAll().constData());
-        qDebug("Got a message from the server, but no waiting request");
-    }
     while (p_socket->canReadLine()) {
         data = p_socket->readLine();
+        if (!p_waitingRequest) {
+            qDebug("%s", data.constData());
+            qDebug("Got a message from the server, but no waiting request");
+            continue;
+        }
         if (data.startsWith("OK")) {
             p_waitingRequest->setOk();
             p_waitingRequest = nullptr;
@@ -394,8 +411,8 @@ void MusicPlayerConnection::onSocketError(QAbstractSocket::SocketError error)
 void MusicPlayerConnection::onConnected()
 {
     qDebug("MPD connected");
-    if (!m_password.isEmpty()) {
-        MpdRequest *req = new MpdRequest(QString("password \"%1\"").arg(m_password));
+    if (!m_currentConnectionDetails.password.isEmpty()) {
+        MpdRequest *req = new MpdRequest(QString("password \"%1\"").arg(m_currentConnectionDetails.password));
         enqueueRequest(req);
         connect(req, SIGNAL(resultReady()), req, SLOT(deleteLater()));
     }

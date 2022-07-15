@@ -7,7 +7,7 @@ MpdCollectionPanel {
         model.queryContent()
     }
 
-    model: MpdCollectionArtistsModel {
+    model: MpdCollectionPlaylistsModel {
         id: model
         //mpdConnector: mpdConnector
     }

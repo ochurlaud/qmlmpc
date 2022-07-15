@@ -57,7 +57,11 @@ TddListView {
         property bool selected: multiSelect?JS.isSelected(index):index===selectedIndex
         Connections {
             target: root
-            onSelectionChanged: if (multiSelect) selected = JS.isSelected(index)
+            function onSelectionChanged() {
+                if (multiSelect) {
+                    selected = JS.isSelected(index)
+                }
+            }
         }
         Text {
             text: description

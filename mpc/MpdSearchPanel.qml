@@ -20,19 +20,18 @@
 import QtQuick 2.1
 
 import ".." // import Style.qml
-import "mpd.js" as MPD
 
 Rectangle {
     width: 4*Style.first8ColumnsWidth+4*Style.last4ColumnsWidth
     height: 7*Style.rowHeight
     color: "black"
 
-    property string searchText
-    property string searchScope: "any" // any, artist, title (http://mpd.wikia.com/wiki/MusicPlayerDaemonCommands#Scope_specifiers)
+    property alias searchText: searchInputField.text
+    property string searchScope: "any" // any, artist, title (https://mpd.readthedocs.io/en/latest/protocol.html#filter-syntax)
     property string searchScopeText: "Any" // what the button should say
 
     function doSearch() {
-        if (searchText)
+        if (searchText && searchText.length >= 3)
             mpdConnector.search(searchText, searchScope)
     }
     onSearchTextChanged: doSearch()
@@ -50,27 +49,25 @@ Rectangle {
                 width: Style.rowHeight
             }
             Rectangle {
-                id: searchInputField
                 height: 24
                 anchors { left: headerText.right; right: searchOptions.left; verticalCenter: parent.verticalCenter }
                 radius: 3
                 color: "white"
-                Text {
+                TextInput {
+                    id: searchInputField
                     anchors { fill: parent; margins: 2 }
                     text: searchText
                 }
-                MouseArea {
+               /* MouseArea {
                     anchors.fill: parent
                     onClicked: prompt("Enter search query:", searchInputField)
-                }
-                function onConfirmed(text) { searchText = text }
+                }*/
             }
             MpdButton {
                 id: searchOptions
                 width: 2*Style.last4ColumnsWidth
                 height: Style.rowHeight/2
                 anchors.right: parent.right
-                image: "images/drop-down.png"
                 text: searchScopeText
                 onClicked: active = !active
                 Column {
@@ -124,7 +121,6 @@ Rectangle {
             MpdButton {
                 width: 4*Style.first8ColumnsWidth
                 text: "Append selected "+songlistView.numSelected+" songs"
-                image: "images/append.png"
                 enabled: songlistView.numSelected > 0
                 onClicked: mpdConnector.addSongs(songlistView.getSelectedPaths())
             }

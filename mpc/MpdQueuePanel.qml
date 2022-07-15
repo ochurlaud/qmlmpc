@@ -25,7 +25,6 @@ Pane {
     Column {
 
         id: queueColumn
-        width: parent.width
         anchors.fill: parent
 
         Item {
@@ -41,6 +40,7 @@ Pane {
                     anchors { left: parent.left; top: parent.top; bottom: parent.bottom}
                     radius: Math.min(4, width/2)
                     width: mpdConnector.elapsedTime/mpdConnector.totalTime*parent.width
+                    color: Material.accent
                 }
                 MouseArea {
                     anchors.fill: parent
@@ -58,6 +58,7 @@ Pane {
         PlaylistView {
             width: parent.width
             height: parent.height - progressBar.height - buttonrow.height - playbackControls.height
+            Component.onCompleted: console.log(height)
         }
 
         //Future FEATURE

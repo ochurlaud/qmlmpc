@@ -23,6 +23,7 @@
 #include <QObject>
 #include <QAbstractSocket>
 #include "types.h"
+#include "settings.h"
 
 class QTcpSocket;
 class QTimer;
@@ -36,6 +37,8 @@ class MusicPlayerConnection : public QObject
     Q_OBJECT
 
     Q_PROPERTY( bool connected READ isConnected NOTIFY connectedChanged )
+    Q_PROPERTY( QString connectedServer READ connectedServer NOTIFY connectedServerChanged )
+
 public:
     enum MoveDirection {
         MoveToFirst,
@@ -45,8 +48,11 @@ public:
         MoveOneDown
     };
 
-    MusicPlayerConnection(const QString& host, int port, const QString& password=QString(), QObject *parent = 0);
+    MusicPlayerConnection(QObject *parent = 0);
 
+    Q_INVOKABLE void addConnection(const QString& name, const QString& host, int port, const QString& password);
+    void addConnection(const QString& name, const MpdConnectionDetails& connectionDetails);
+    Q_INVOKABLE void connectServer(const QString& serverName);
     MpdRequest* getStatus();
     MpdRequest* play();
     MpdRequest* pause();
@@ -74,22 +80,26 @@ public:
     MpdRequest* listAlbums(const QString& artist);
     MpdRequest* listAlbums();
     MpdRequest* listSongsByArtistAndAlbum(const QString& artist, const QString& album);
+    MpdRequest* listSongsByAlbum(const QString& album);
+
     MpdRequest* listPlaylists();
     MpdRequest* getQueue();
     MpdRequest* getPlaylistSongs(const QString& playlist);
     MpdRequest* search(const QString& query, const QString& scope);
 
     bool isConnected() { return m_connected; }
+    QString connectedServer() const { return m_connectedServer; };
 
 signals:
     void statusChanged(QSharedPointer<MpdStatus> status);
     void connectedChanged();
+    void connectedServerChanged();
 
 public slots:
     void debugAndDelete(); //!< if an error occurred, display the error and finally delete the MpdRequest
 
     void reconnect();
-    void reconnect(const QString& host, int port, const QString& password=QString());
+    void reconnect(const QString& serverName);
     void disconnect();
 
 private slots:
@@ -107,9 +117,11 @@ private:
     MpdRequest* request(const QString& mpdCommand);
 
 private:
-    QString m_host;
-    int m_port;
-    QString m_password;
+    QMap<QString, MpdConnectionDetails> m_connectionDetailsStore;
+    MpdConnectionDetails m_currentConnectionDetails;
+    QString m_connectedServer;
+
+    QString m_protocolVersion;
     QTcpSocket *p_socket;
 
     MpdRequest* p_waitingRequest;

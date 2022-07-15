@@ -12,7 +12,10 @@ QML_IMPORT_MAJOR_VERSION = 1
 INCLUDEPATH += mpc/models
 
 SOURCES += main.cpp \
-    mpc/models/mpdcollectionmodel.cpp \
+    mpc/models/mpdcollectionalbumsmodel.cpp \
+    mpc/models/mpdcollectionartistsmodel.cpp \
+    mpc/models/mpdcollectionplaylistsmodel.cpp \
+    mpc/models/mpdcollectionsongsmodel.cpp \
     mpc/models/mpdentitylistmodel.cpp \
     mpc/models/mpdsonglistmodel.cpp \
     mpc/mpdconnector.cpp \
@@ -31,7 +34,10 @@ QML_IMPORT_PATH =
 #include(deployment.pri)
 
 HEADERS += \
-    mpc/models/mpdcollectionmodel.h \
+    mpc/models/mpdcollectionalbumsmodel.h \
+    mpc/models/mpdcollectionartistsmodel.h \
+    mpc/models/mpdcollectionplaylistsmodel.h \
+    mpc/models/mpdcollectionsongsmodel.h \
     mpc/models/mpdentitylistmodel.h \
     mpc/models/mpdsonglistmodel.h \
     mpc/mpdconnector.h \

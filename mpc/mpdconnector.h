@@ -30,7 +30,6 @@ class MusicPlayerConnection;
 class MpdSong;
 class MpdSongListModel;
 class MpdEntityListModel;
-class MpdCollectionModel;
 
 class MpdConnector : public QObject
 {
@@ -54,12 +53,10 @@ class MpdConnector : public QObject
     Q_PROPERTY( QObject *connection READ getConnection CONSTANT )
     // data models
     Q_PROPERTY( QObject *queueModel READ getQueueModel CONSTANT )
-    Q_PROPERTY( QObject *playlistsModel READ getPlaylistsModel CONSTANT )
     Q_PROPERTY( QObject *playlistSongsModel READ getPlaylistSongsModel CONSTANT )
-    Q_PROPERTY( QObject *collectionModel READ getCollectionModel CONSTANT )
     Q_PROPERTY( QObject *searchResultModel READ getSearchResultModel CONSTANT)
 public:
-    MpdConnector(const QString& host, int port, const QString& password, QObject *parent = 0);
+    MpdConnector(QObject *parent = 0);
 
     bool getRepeat() { return p_status->repeat(); }
     bool getRandom() { return p_status->random(); }
@@ -79,9 +76,7 @@ public:
     MusicPlayerConnection *getConnection2() { return p_connection; }
 
     QObject *getQueueModel() { return (QObject*) p_queueModel; }
-    QObject *getPlaylistsModel() { return (QObject*) p_playlistsModel; }
     QObject *getPlaylistSongsModel() { return (QObject*) p_playlistSongsModel; }
-    QObject *getCollectionModel() { return (QObject*) p_collectionModel; }
     QObject *getSearchResultModel() { return (QObject*) p_searchResultModel; }
     
 signals:
@@ -115,25 +110,24 @@ public slots:
     void moveSongLast(int songId);
     void moveSongAfterCurrent(int songId);
     void seek(int time);
-    void listDirectory(const QString& path);
-    void listArtists();
+    /*void listDirectory(const QString& path);
     void listAlbums();
     void listAlbums(const QString& artist);
     void listSongsByArtistAndAlbum(const QString& artist, const QString& album);
     void listPlaylists();
-    void listSongsByPlaylist(const QString& playlist);
+    void listSongsByPlaylist(const QString& playlist);*/
     void getPlaylistSongs(const QString& playlist);
     void search(const QString& query, const QString& scope);
     
 private slots:
     void statusUpdated(QSharedPointer<MpdStatus> status);
     void queueReady();
-    void playlistsReady();
+/*    void playlistsReady();*/
     void playlistSongsReady();
-    void directoryListingReady();
+/*    void directoryListingReady();
     void artistListingReady();
-    void albumListingReady();
-    void songListingReady();
+    void albumListingReady();*/
+ //   void songListingReady();
     void searchResultsReady();
 
 private:
@@ -145,9 +139,7 @@ private:
     int m_lastPlaylistVersion;
     MpdSongList m_queue;
     MpdSongListModel *p_queueModel;
-    MpdEntityListModel *p_playlistsModel;
     MpdSongListModel *p_playlistSongsModel;
-    MpdCollectionModel *p_collectionModel;
     QString m_currentCollectionPath;
     MpdSongListModel *p_searchResultModel;
 };
