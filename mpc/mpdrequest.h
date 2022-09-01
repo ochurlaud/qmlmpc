@@ -25,12 +25,11 @@ signals:
 
 protected:
     virtual void feedData(QByteArray data) { m_buffer += data; }
-    void setOk() { m_ready = true; m_response = m_parser.parseData(m_buffer); emit resultReady(); }
-    void setAck(QString msg) { m_ready = true; m_ack = msg; emit resultReady(); }
+    void setOk();
+    void setAck(const QString& msg);
 
     QString m_requestMessage;
     QByteArray m_buffer;
-    MpdParser m_parser;
     QList<QSharedPointer<MpdObject>> m_response;
 
 private:

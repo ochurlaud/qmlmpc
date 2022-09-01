@@ -25,14 +25,14 @@
 #include "models/mpdcollectionartistsmodel.h"
 #include "mpdrequest.h"
 
-#define SIMPLE_REQUEST(func) MpdRequest *req = p_connection->func; if (req) connect(req, SIGNAL(resultReady()), p_connection, SLOT(debugAndDelete()));
+#define SIMPLE_REQUEST(func) MpdRequest *req = p_connection->func; if (req) connect(req, &MpdRequest::resultReady, p_connection, &MusicPlayerConnection::debugAndDelete);
 #define MOVE_REQUEST(songId, direction) MpdSong *song = getSong(songId); if (song) { SIMPLE_REQUEST(move(song, direction)) } else { qDebug("Move: invalid songId"); }
 
 MpdConnector::MpdConnector(QObject *parent) :
     QObject(parent)
 {
     p_connection = new MusicPlayerConnection(this);
-    connect(p_connection, SIGNAL(statusChanged(QSharedPointer<MpdStatus>)), SLOT(statusUpdated(QSharedPointer<MpdStatus>)));
+    connect(p_connection, &MusicPlayerConnection::statusChanged, this, &MpdConnector::statusUpdated);
     p_status = QSharedPointer<MpdStatus>(new MpdStatus()); //construct default status
     m_lastPlaylistVersion = -1; // force update when next status is ready
     p_queueModel = new MpdSongListModel(this);
@@ -77,6 +77,25 @@ void MpdConnector::seek(int time)
 {
     SIMPLE_REQUEST(seek(p_status->currentSongId(), time));
 }
+
+void MpdConnector::appendAlbum(const QString& artist, const QString& album) {
+    MpdRequest *request = p_connection->listSongsByArtistAndAlbum(artist, album);
+    connect(request, &MpdRequest::resultReady, this, &MpdConnector::songsToAppendReady);
+}
+
+void MpdConnector::songsToAppendReady() {
+    MpdRequest *request = qobject_cast<MpdRequest*>(sender());
+    if (request->succesfull()) {
+        QList<QSharedPointer<MpdObject>> response = request->getResponse();
+        for (auto& obj : response) {
+            this->appendSong(obj.dynamicCast<MpdSong>()->getPath());
+        }
+    } else {
+        qDebug("listPlaylistSongs got an ACK: '%s'", qPrintable(request->getAck()));
+    }
+    request->deleteLater();
+}
+
 /*
 void MpdConnector::listDirectory(const QString& path)
 {
@@ -84,7 +103,7 @@ void MpdConnector::listDirectory(const QString& path)
     emit currentCollectionPathChanged();
     p_collectionModel->setEntityList(MpdEntityList());
     MpdRequest *request = p_connection->listDirectory(path);
-    connect(request, SIGNAL(resultReady()), SLOT(directoryListingReady()));
+    connect(request, &MpdRequest::resultReady, this, &MpdConnector::directoryListingReady()));
 }
 
 void MpdConnector::listAlbums()
@@ -96,14 +115,14 @@ void MpdConnector::listAlbums(const QString &artist)
 {
     p_collectionModel->setEntityList(MpdEntityList());
     MpdRequest *request = p_connection->listAlbums(artist);
-    connect(request, SIGNAL(resultReady()), SLOT(albumListingReady()));
+    connect(request, &MpdRequest::resultReady, this, &MpdConnector::albumListingReady()));
 }
 
 void MpdConnector::listSongsByArtistAndAlbum(const QString& artist, const QString& album)
 {
     p_collectionModel->setEntityList(MpdEntityList());
     MpdRequest *request = p_connection->listSongsByArtistAndAlbum(artist, album);
-    connect(request, SIGNAL(resultReady()), SLOT(songListingReady()));
+    connect(request, &MpdRequest::resultReady, this, &MpdConnector::songListingReady()));
 }
 
 void MpdConnector::directoryListingReady()
@@ -144,7 +163,7 @@ void MpdConnector::songListingReady()
 void MpdConnector::listPlaylists()
 {
     MpdRequest *request = p_connection->listPlaylists();
-    connect(request, SIGNAL(resultReady()), SLOT(playlistsReady()));
+    connect(request, &MpdRequest::resultReady, this, &MpdConnector::playlistsReady()));
 }
 
 void MpdConnector::playlistsReady()
@@ -167,7 +186,7 @@ void MpdConnector::listSongsByPlaylist(const QString& playlist)
 {
     p_collectionModel->setEntityList(MpdEntityList());
     MpdRequest *request = p_connection->getPlaylistSongs(playlist);
-    connect(request, SIGNAL(resultReady()), SLOT(songListingReady()));
+    connect(request, &MpdRequest::resultReady, this, &MpdConnector::songListingReady()));
 }*/
 
 void MpdConnector::getPlaylistSongs(const QString& playlist)
@@ -175,7 +194,7 @@ void MpdConnector::getPlaylistSongs(const QString& playlist)
     if (playlist.isEmpty())
         return p_playlistSongsModel->setSongList(MpdSongList());
     MpdRequest *request = p_connection->getPlaylistSongs(playlist);
-    connect(request, SIGNAL(resultReady()), SLOT(playlistSongsReady()));
+    connect(request, &MpdRequest::resultReady, this, &MpdConnector::playlistSongsReady);
 }
 
 void MpdConnector::playlistSongsReady()
@@ -184,7 +203,7 @@ void MpdConnector::playlistSongsReady()
     if (request->succesfull()) {
         QList<QSharedPointer<MpdObject>> response = request->getResponse();
         MpdSongList songList;
-        for (auto obj : response) {
+        for (auto& obj : response) {
             songList.append(obj.dynamicCast<MpdSong>());
         }
         p_playlistSongsModel->setSongList(songList);
@@ -197,7 +216,7 @@ void MpdConnector::playlistSongsReady()
 void MpdConnector::search(const QString& query, const QString& scope)
 {
     MpdRequest *request = p_connection->search(query, scope);
-    connect(request, SIGNAL(resultReady()), SLOT(searchResultsReady()));
+    connect(request, &MpdRequest::resultReady, this, &MpdConnector::searchResultsReady);
 }
 
 void MpdConnector::searchResultsReady()
@@ -206,7 +225,7 @@ void MpdConnector::searchResultsReady()
     if (request->succesfull()) {
         QList<QSharedPointer<MpdObject>> response = request->getResponse();
         MpdSongList songList;
-        for (auto obj : response) {
+        for (auto& obj : response) {
             songList.append(obj.dynamicCast<MpdSong>());
         }
         p_searchResultModel->setSongList(songList);
@@ -223,8 +242,8 @@ void MpdConnector::statusUpdated(QSharedPointer<MpdStatus> status)
     emit currentSongChanged();
     if (status->playlistVersion() != m_lastPlaylistVersion) {
         // request the queue
-        MpdRequest *req = p_connection->getQueue();
-        connect(req, SIGNAL(resultReady()), SLOT(queueReady()));
+        MpdRequest *request = p_connection->getQueue();
+        connect(request, &MpdRequest::resultReady, this, &MpdConnector::queueReady);
         m_lastPlaylistVersion = status->playlistVersion();
     }
 }
@@ -239,7 +258,7 @@ void MpdConnector::queueReady()
     } else { // success :)
         QList<QSharedPointer<MpdObject>> response = req->getResponse();
         MpdSongList songList;
-        for (auto obj : response) {
+        for (auto& obj : response) {
             songList.append(obj.dynamicCast<MpdSong>());
         }
         m_queue = songList;

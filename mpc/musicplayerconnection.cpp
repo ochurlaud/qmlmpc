@@ -32,17 +32,17 @@ MusicPlayerConnection::MusicPlayerConnection(QObject *parent) :
 {
     p_socket = new QTcpSocket(this);
 
-    connect(p_socket, SIGNAL(readyRead()), this, SLOT(dataReady()));
-    connect(p_socket, SIGNAL(connected()), SLOT(onConnected()));
-    connect(p_socket, SIGNAL(disconnected()), SLOT(onDisconnected()));
-    connect(p_socket, SIGNAL(errorOccurred(QAbstractSocket::SocketError)), SLOT(onSocketError(QAbstractSocket::SocketError)));
+    connect(p_socket, &QTcpSocket::readyRead, this, &MusicPlayerConnection::dataReady);
+    connect(p_socket, &QTcpSocket::connected, this, &MusicPlayerConnection::onConnected);
+    connect(p_socket, &QTcpSocket::disconnected, this, &MusicPlayerConnection::onDisconnected);
+    connect(p_socket, &QTcpSocket::errorOccurred, this, &MusicPlayerConnection::onSocketError);
 
     p_timer = new QTimer(this);
-    connect(p_timer, SIGNAL(timeout()), this, SLOT(renewStatus()));
+    connect(p_timer, &QTimer::timeout, this, &MusicPlayerConnection::renewStatus);
     p_timer->setInterval(100);
 
     QTimer *sendMessagesTimer = new QTimer(this);
-    connect(sendMessagesTimer, SIGNAL(timeout()), SLOT(sendNextRequest()));
+    connect(sendMessagesTimer, &QTimer::timeout, this, &MusicPlayerConnection::sendNextRequest);
     sendMessagesTimer->setInterval(1000); // if a sendNextRequest had failed, it won't be resend without this timer
     sendMessagesTimer->start();
 }
@@ -381,7 +381,7 @@ void MusicPlayerConnection::renewStatus()
 {
     if (m_connected) {
         MpdRequest *req = getStatus();
-        connect(req, SIGNAL(resultReady()), SLOT(statusReady()));
+        connect(req, &MpdRequest::resultReady, this, &MusicPlayerConnection::statusReady);
     }
 }
 
@@ -414,7 +414,7 @@ void MusicPlayerConnection::onConnected()
     if (!m_currentConnectionDetails.password.isEmpty()) {
         MpdRequest *req = new MpdRequest(QString("password \"%1\"").arg(m_currentConnectionDetails.password));
         enqueueRequest(req);
-        connect(req, SIGNAL(resultReady()), req, SLOT(deleteLater()));
+        connect(req, &MpdRequest::resultReady, req, &MpdRequest::deleteLater);
     }
 }
 

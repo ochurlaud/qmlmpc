@@ -68,11 +68,11 @@ Pane {
 
                              MenuItem {
                                  text: qsTr("Add album")
-                                 onTriggered: mpdConnector.appendAlbum(path)
+                                 onTriggered: mpdConnector.appendAlbum(artist, path)
                              }
                              MenuItem {
                                  text: qsTr("Add next")
-                                 onTriggered: mpdConnector.insertAlbumAfterCurrent(songId)
+                                 onTriggered: mpdConnector.insertAlbumAfterCurrent(artist, path)
                              }
                              MenuItem {
                                  text: qsTr("Add and replace")

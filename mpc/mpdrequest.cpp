@@ -7,6 +7,21 @@ MpdRequest::MpdRequest(QString requestMessage) : m_requestMessage(requestMessage
 
 }
 
+void MpdRequest::setOk()
+{
+    m_ready = true;
+    MpdParser parser;
+    m_response = parser.parseData(m_buffer);
+    emit resultReady();
+}
+
+void MpdRequest::setAck(const QString& msg)
+{
+    m_ready = true;
+    m_ack = msg;
+    emit resultReady();
+}
+
 bool MpdRequest::isResultReady() const
 {
     return m_ready;

@@ -85,6 +85,8 @@ signals:
     void currentCollectionPathChanged();
     
 public slots:
+
+    // Media management
     void play();
     void pause();
     void stop();
@@ -95,11 +97,18 @@ public slots:
     void playSong(int songId);
     void removeSong( int songId);
     void clearQueue();
+
+    // Playlists
     void savePlaylist(const QString& name);
     void renamePlaylist(const QString& playlist, const QString& newName);
     void removePlaylist(const QString& playlist);
     void appendPlaylist(const QString& playlist);
     void playPlaylist(const QString& playlist);
+
+    // Albums
+    void appendAlbum(const QString& artist, const QString& album);
+
+    // Songs
     void insertSong(const QString& path);
     void appendSong(const QString& path);
     void addSongs(QStringList paths);
@@ -124,6 +133,7 @@ private slots:
     void queueReady();
 /*    void playlistsReady();*/
     void playlistSongsReady();
+    void songsToAppendReady();
 /*    void directoryListingReady();
     void artistListingReady();
     void albumListingReady();*/
