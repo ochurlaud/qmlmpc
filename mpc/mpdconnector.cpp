@@ -55,6 +55,7 @@ void MpdConnector::next() { SIMPLE_REQUEST(next()) }
 void MpdConnector::previous() { SIMPLE_REQUEST(previous()) }
 void MpdConnector::repeat(bool repeat) { SIMPLE_REQUEST(repeat(repeat)) }
 void MpdConnector::random(bool random) { SIMPLE_REQUEST(random(random)) }
+void MpdConnector::consume(bool consume) { SIMPLE_REQUEST(consume(consume)) }
 void MpdConnector::playSong(int songId) { SIMPLE_REQUEST(playSong(songId)) }
 void MpdConnector::removeSong(int songId) { SIMPLE_REQUEST(removeSong(songId)) }
 void MpdConnector::clearQueue() { SIMPLE_REQUEST(clearQueue()) }
@@ -66,7 +67,8 @@ void MpdConnector::playPlaylist(const QString& playlist) { SIMPLE_REQUEST(playPl
 void MpdConnector::insertSong(const QString& path) { if (getCurrentSongId()==-1) { return qDebug("Cannot insert song: no song is playing."); } SIMPLE_REQUEST(insertSong(path)) }
 void MpdConnector::appendSong(const QString& path) { SIMPLE_REQUEST(appendSong(path)) }
 void MpdConnector::prependSong(const QString& path) { SIMPLE_REQUEST(prependSong(path)) }
-void MpdConnector::addSongs(QStringList paths) { SIMPLE_REQUEST(addSongs(paths)) }
+void MpdConnector::insertSongs(const QStringList& paths) { SIMPLE_REQUEST(insertSongs(paths)) }
+void MpdConnector::addSongs(const QStringList& paths) { SIMPLE_REQUEST(addSongs(paths)) }
 void MpdConnector::moveSongUp(int songId) { MOVE_REQUEST(songId, MusicPlayerConnection::MoveOneUp) }
 void MpdConnector::moveSongDown(int songId) { MOVE_REQUEST(songId, MusicPlayerConnection::MoveOneDown) }
 void MpdConnector::moveSongFirst(int songId) { MOVE_REQUEST(songId, MusicPlayerConnection::MoveToFirst) }
@@ -78,20 +80,56 @@ void MpdConnector::seek(int time)
     SIMPLE_REQUEST(seek(p_status->currentSongId(), time));
 }
 
-void MpdConnector::appendAlbum(const QString& artist, const QString& album) {
+void MpdConnector::appendAlbum(const QString& artist, const QString& album, const bool playNow)
+{
     MpdRequest *request = p_connection->listSongsByArtistAndAlbum(artist, album);
-    connect(request, &MpdRequest::resultReady, this, &MpdConnector::songsToAppendReady);
+    if (playNow) {
+        connect(request, &MpdRequest::resultReady, this, &MpdConnector::songsToAppendReadyAndPlay);
+    } else {
+        connect(request, &MpdRequest::resultReady, this, &MpdConnector::songsToAppendReady);
+    }
 }
 
-void MpdConnector::songsToAppendReady() {
+void MpdConnector::songsToAppendReadyAndPlay()
+{
+    this->songsToAppendReady();
+    this->play();
+}
+
+void MpdConnector::songsToAppendReady()
+{
     MpdRequest *request = qobject_cast<MpdRequest*>(sender());
     if (request->succesfull()) {
         QList<QSharedPointer<MpdObject>> response = request->getResponse();
+        QStringList songList;
         for (auto& obj : response) {
-            this->appendSong(obj.dynamicCast<MpdSong>()->getPath());
+            songList.append(obj.dynamicCast<MpdSong>()->getPath());
         }
+        this->addSongs(songList);
     } else {
-        qDebug("listPlaylistSongs got an ACK: '%s'", qPrintable(request->getAck()));
+        qDebug("listSongsByArtistAndAlbum got an ACK: '%s'", qPrintable(request->getAck()));
+    }
+    request->deleteLater();
+}
+
+void MpdConnector::insertAlbum(const QString& artist, const QString& album)
+{
+    MpdRequest *request = p_connection->listSongsByArtistAndAlbum(artist, album);
+    connect(request, &MpdRequest::resultReady, this, &MpdConnector::songsToInsertReady);
+}
+
+void MpdConnector::songsToInsertReady()
+{
+    MpdRequest *request = qobject_cast<MpdRequest*>(sender());
+    if (request->succesfull()) {
+        QList<QSharedPointer<MpdObject>> response = request->getResponse();
+        QStringList songList;
+        for (auto& obj : response) {
+            songList.append(obj.dynamicCast<MpdSong>()->getPath());
+        }
+        this->insertSongs(songList);
+    } else {
+        qDebug("listSongsByArtistAndAlbum got an ACK: '%s'", qPrintable(request->getAck()));
     }
     request->deleteLater();
 }

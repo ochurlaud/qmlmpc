@@ -1,5 +1,5 @@
-import QtQuick 2.1
-import QtQuick.Controls 2.15
+import QtQuick
+import QtQuick.Controls
 
 ScrollView {
     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
@@ -7,6 +7,8 @@ ScrollView {
         id: queueView
         anchors.fill: parent
         model: mpdConnector.queueModel
+        clip: true // Needed so that it does not overflow the other components
+
         property int savedScroll
         onCurrentIndexChanged: positionViewAtIndex(currentIndex, ListView.Visible)
         Connections {
@@ -24,12 +26,18 @@ ScrollView {
             width: queueView.width
             Text {
                 id: playIcon
-                text: "\u25B6"
-                visible: songId===mpdConnector.currentSongId
-                anchors { left: parent.left; leftMargin: 3; verticalCenter: parent.verticalCenter }
+                text: "\u25B6 "
+                color: Material.foreground
+                visible: songId === mpdConnector.currentSongId
+                anchors {
+                    left: parent.left
+                    leftMargin: 3
+                    verticalCenter: parent.verticalCenter
+                }
             }
             Text {
                 text: description
+                color: Material.foreground
                 elide: Text.ElideRight
                 verticalAlignment: Text.AlignVCenter
                 anchors { fill: parent; margins: 3; }

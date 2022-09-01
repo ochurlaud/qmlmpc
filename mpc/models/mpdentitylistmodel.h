@@ -14,14 +14,12 @@ class MpdEntityListModel : public QAbstractListModel
 public:
     MpdEntityListModel(QObject *parent);
 
-    virtual void setEntityList(MpdEntityList list);
-
     void setMpdConnector(MpdConnector* mpdConnector) { m_mpdConnector=mpdConnector;}
     MpdConnector* getMpdConnector() { return m_mpdConnector;}
 
     virtual QHash<int, QByteArray> roleNames() const { return p_roles; }
-    virtual int rowCount(const QModelIndex &parent) const;
-    virtual QVariant data(const QModelIndex &index, int role) const;
+    virtual int rowCount(const QModelIndex &parent) const {};
+    QVariant data(const QModelIndex &index, int role) const;
 
     Q_INVOKABLE virtual void queryContent() {}; // = 0;
 
@@ -33,7 +31,6 @@ protected slots:
     virtual void contentReady() {}; //) = 0;
 
 protected:
-    MpdEntityList m_list;
     QList<bool> m_selectedIndices;
     MpdConnector* m_mpdConnector;
     QHash<int, QByteArray> p_roles;

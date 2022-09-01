@@ -101,35 +101,35 @@ ApplicationWindow {
         case "playlist":
             mainStack.push("qrc:///mpc/MpdCollectionPlaylistsPanel.qml")
             mainStack.currentItem.itemClicked.connect(function (type, name){
-                pushView("songs", name=name, parentView="playlist")
+                pushView(type, name=name, parentView="playlist")
             })
             break;
         case "artist":
             mainStack.push("qrc:///mpc/MpdCollectionArtistsPanel.qml")
             mainStack.currentItem.itemClicked.connect(function (type, name){
-                pushView("album", name=name)
+                pushView(type, name=name)
             })
             break;
         case "album":
             mainStack.push("qrc:///mpc/MpdCollectionAlbumsPanel.qml", {"artist": name})
             mainStack.currentItem.itemClicked.connect(function (type, name){
-                pushView("songs", name=name, parentView="album")
+                pushView(type, name=name, parentView="album")
             })
             break;
-        case "songs":
+        case "song":
             if (parentView === "album") {
                 var namelist = name.split('@')
                 var album = namelist[0]
                 var artist = namelist[1]
                 mainStack.push("qrc:///mpc/MpdCollectionSongsPanel.qml", {"artist": artist, "album": album})
                 mainStack.currentItem.itemClicked.connect(function (type, name){
-                  //  pushView("songs", name=name)
+                    pushView(type, name=name)
                 })
             }
             else if (parentView === "playlist") {
                 mainStack.push("qrc:///mpc/MpdCollectionSongsPanel.qml", {"playlist": name})
                 mainStack.currentItem.itemClicked.connect(function (type, name){
-                  //  pushView("songs", name=name)
+                  //  pushView(type, name=name)
                 })
             }
 

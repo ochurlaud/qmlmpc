@@ -37,6 +37,7 @@ MpdStatus::MpdStatus(const QMultiHash<QByteArray,QByteArray>& hash)
 {
     m_repeat = hash.value("repeat") == "1";
     m_random = hash.value("random") == "1";
+    m_consume = hash.value("consume") == "1";
     m_playlistVersion = hash.value("playlist", "-1").toUInt();
     m_playlistLength = hash.value("playlistlength", "0").toUInt();
     QString state = hash.value("state");
@@ -68,6 +69,7 @@ bool MpdStatus::operator ==(MpdStatus &other)
     return (other.m_elapsedTime == m_elapsedTime && // put this one up front, because it is most likely to be the property that has changed
             other.m_repeat == m_repeat &&
             other.m_random == m_random &&
+            other.m_consume == m_consume &&
             other.m_playlistVersion == m_playlistVersion &&
             other.m_playlistLength == m_playlistLength &&
             other.m_state == m_state &&
@@ -87,7 +89,7 @@ MpdSong::MpdSong(const QMultiHash<QByteArray,QByteArray> &hash)
     m_id = hash.value("id", "-1").toInt();
 }
 
-QString MpdSong::getDescription()
+QString MpdSong::getDescription() const
 {
     if (!m_title.isEmpty()) {
         return m_title;
@@ -122,7 +124,7 @@ MpdAlbum::MpdAlbum(const QMultiHash<QByteArray,QByteArray>& hash)
     if (m_name.isEmpty()) {
         m_name = "Unknown Album";
     }
-//    m_artist = hash.value("albumartist");
+    m_artist = hash.value("albumartist");
 }
 
 QSharedPointer<MpdSong> MpdSongList::getSongById(int songId)

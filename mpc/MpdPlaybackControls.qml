@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
@@ -57,6 +57,14 @@ ToolBar {
             Layout.fillWidth: true
             Layout.fillHeight: true
             onClicked: mpdConnector.random(!checked)
+        }
+        ToolButton {
+            id: consume
+            checked: mpdConnector.consuming
+            icon.name: "edit-delete-symbolic"
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            onClicked: mpdConnector.consume(!checked)
         }
     }
     background: Rectangle {

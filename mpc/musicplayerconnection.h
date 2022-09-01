@@ -61,6 +61,7 @@ public:
     MpdRequest* previous();
     MpdRequest* repeat(bool repeat);
     MpdRequest* random(bool random);
+    MpdRequest* consume(bool consume);
     MpdRequest* move(MpdSong *song, MoveDirection direction);
     MpdRequest* playSong(unsigned int songId);
     MpdRequest* removeSong(unsigned int songId);
@@ -74,6 +75,7 @@ public:
     MpdRequest* appendSong(const QString& path);
     MpdRequest* prependSong(const QString& path);
     MpdRequest* addSongs(const QStringList& paths);
+    MpdRequest* insertSongs(const QStringList& paths);
     MpdRequest* seek(int songId, int time);
     MpdRequest* listDirectory(const QString& path);
     MpdRequest* listArtists();

@@ -23,7 +23,8 @@ class MpdCollectionSongsModel : public MpdEntityListModel
 public:
     MpdCollectionSongsModel(QObject *parent=nullptr);
 
-    virtual void setEntityList(MpdEntityList list);
+    void setSongList(QList<QSharedPointer<MpdSong> > list);
+    virtual int rowCount(const QModelIndex &parent) const;
 
     Q_INVOKABLE bool isSelected(int index) const;
     int getNumSelectedSongs() const;
@@ -52,7 +53,7 @@ public slots:
     virtual void contentReady();
 
 private:
-
+    QList<QSharedPointer<MpdSong> > m_list;
     QString m_artistName;
     QString m_albumName;
     QString m_playlistName;

@@ -118,6 +118,12 @@ MpdRequest *MusicPlayerConnection::repeat(bool repeat)
     return this->request(mpdCommand);
 }
 
+MpdRequest *MusicPlayerConnection::consume(bool consume)
+{
+    QString mpdCommand = QStringLiteral("consume %1").arg(consume ? 1 : 0);
+    return this->request(mpdCommand);
+}
+
 MpdRequest *MusicPlayerConnection::random(bool random)
 {
     QString mpdCommand = QStringLiteral("random %1").arg(random ? 1 : 0);
@@ -150,7 +156,8 @@ MpdRequest *MusicPlayerConnection::move(MpdSong *song, MoveDirection direction)
     if (pos < 0) {
         return 0;
     }
-    QString mpdCommand = QStringLiteral("moveid \"%1\" \"%2\"").arg(song->getPlaylistId(), pos);
+
+    QString mpdCommand = QStringLiteral("moveid \"%1\" \"%2\"").arg(QString::number(song->getPlaylistId()), QString::number(pos));
     return this->request(mpdCommand);
 }
 
@@ -210,7 +217,7 @@ MpdRequest *MusicPlayerConnection::playPlaylist(const QString& playlistName)
 
 MpdRequest *MusicPlayerConnection::insertSong(const QString& songPath)
 {
-    QString mpdCommand = QStringLiteral("addid \"%1\" -1").arg(songPath);
+    QString mpdCommand = QStringLiteral("addid \"%1\" %2").arg(songPath, QString::number(p_status->currentSongPos()+1));
     return this->request(mpdCommand);
 }
 
@@ -240,9 +247,27 @@ MpdRequest *MusicPlayerConnection::addSongs(const QStringList& songPaths)
     return this->request(mpdCommand);
 }
 
+MpdRequest *MusicPlayerConnection::insertSongs(const QStringList& songPaths)
+{
+    QString mpdCommand;
+    if (songPaths.isEmpty()) {
+        mpdCommand = QStringLiteral("ping");
+    } else {
+        int insertionPosition = p_status->currentSongPos()+1;
+        QString replacement = QStringLiteral("\" %1\naddid \"").arg(QString::number(insertionPosition));
+        QStringList invertedSongPaths = songPaths;
+        std::reverse(invertedSongPaths.begin(), invertedSongPaths.end());
+        mpdCommand = QStringLiteral("command_list_begin\n"
+                                            "addid \"%1\" %2\n"
+                                            "command_list_end"
+                                            ).arg(invertedSongPaths.join(replacement), QString::number(insertionPosition));
+    }
+    return this->request(mpdCommand);
+}
+
 MpdRequest *MusicPlayerConnection::seek(int songId, int time)
 {
-    QString mpdCommand = QStringLiteral("seekid \"%1\" \"%2\"").arg(songId, time);
+    QString mpdCommand = QStringLiteral("seekid \"%1\" \"%2\"").arg(songId).arg(time);
     return this->request(mpdCommand);
 }
 
@@ -263,8 +288,8 @@ MpdRequest *MusicPlayerConnection::listAlbums(const QString& artist)
 
 MpdRequest *MusicPlayerConnection::listAlbums()
 {
-//   QString mpdCommand = QStringLiteral("list albumartist group album");
-    QString mpdCommand = QStringLiteral("list album");
+    QString mpdCommand = QStringLiteral("list albumartist group album");
+//    QString mpdCommand = QStringLiteral("list album");
     return this->request(mpdCommand);
 }
 
@@ -277,7 +302,7 @@ MpdRequest *MusicPlayerConnection::listSongsByArtistAndAlbum(const QString& arti
 
 MpdRequest *MusicPlayerConnection::listSongsByAlbum(const QString& album)
 {
-    QString mpdCommand = QStringLiteral("find \"(Album == \\\"%2\\\")\" ").arg(album);
+    QString mpdCommand = QStringLiteral("find \"(Album == \\\"%1\\\")\" ").arg(album);
     return this->request(mpdCommand);
 }
 
@@ -447,4 +472,3 @@ void MusicPlayerConnection::sendNextRequest()
     p_socket->write(p_waitingRequest->m_requestMessage.toUtf8()+'\n');
     p_socket->flush();
 }
-

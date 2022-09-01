@@ -44,23 +44,23 @@ Pane {
                         anchors.fill: parent
                         acceptedButtons: Qt.LeftButton | Qt.RightButton
                         Connections {
-                            function menu(path, type) {
+                            function menu(albumName, type) {
                                 contextMenu.popup()
                             }
                             function onClicked(mouse) {
                                 if (mouse.button === Qt.LeftButton) {
-                                    root.itemClicked(type.toLowerCase(), path + '@' + artist)
+                                    root.itemClicked("song", albumName + '@' + artist)
                                 } else if (mouse.button === Qt.RightButton) {
-                                    menu(path, type)
+                                    menu(albumName, type)
                                 }
                             }
                             function onPressAndHold(mouse) {
                                 if (mouse.source === Qt.MouseEventNotSynthesized) {
-                                    menu(path, type)
+                                    menu(albumName, type)
                                 }
                             }
                             function onDoubleClicked(mouse) {
-                                root.itemClicked(type.toLowerCase(),  path + '@' + artist)
+                                root.itemClicked("song",  albumName + '@' + artist)
                             }
                         }
                         Menu {
@@ -68,30 +68,37 @@ Pane {
 
                              MenuItem {
                                  text: qsTr("Add album")
-                                 onTriggered: mpdConnector.appendAlbum(artist, path)
+                                 onTriggered: mpdConnector.appendAlbum(artist, albumName)
                              }
                              MenuItem {
                                  text: qsTr("Add next")
-                                 onTriggered: mpdConnector.insertAlbumAfterCurrent(artist, path)
+                                 onTriggered: mpdConnector.insertAlbum(artist, albumName)
                              }
                              MenuItem {
                                  text: qsTr("Add and replace")
-                                 onTriggered: mpdConnector.moveSongAfterCurrent(songId)
+                                 onTriggered: {
+                                     mpdConnector.clearQueue()
+                                     mpdConnector.appendAlbum(artist, albumName)
+                                }
                              }
                              MenuItem {
                                  text: qsTr("Add, replace and play")
-                                 onTriggered: mpdConnector.moveSongAfterCurrent(songId)
+                                 onTriggered: {
+                                     mpdConnector.clearQueue()
+                                     mpdConnector.appendAlbum(artist, albumName, true)
+                                }
                              }
                              MenuItem {
                                  text: qsTr("Add to playlist")
-                                 onTriggered: mpdConnector.moveSongAfterCurrent(songId)
+                                 onTriggered: {
+
+                                 }
                              }
                              MenuItem {
                                  text: qsTr("Go to the artist")
-                                 onTriggered: mpdConnector.moveSongAfterCurrent(songId)
+                                 onTriggered: root.itemClicked("album", artist)
                              }
                         }
-
                     }
                     Rectangle {
                         id: delegateItem
@@ -100,6 +107,7 @@ Pane {
 
                         Text {
                             text: description
+                            color: Material.foreground
                             elide: Text.ElideRight
                             verticalAlignment: Text.AlignVCenter
                             anchors { fill: parent; margins: 3; leftMargin: 22 }

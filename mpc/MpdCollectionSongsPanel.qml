@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick
 import org.qmlmpc
 
 MpdCollectionPanel {
@@ -13,6 +13,5 @@ MpdCollectionPanel {
 
     model: MpdCollectionSongsModel {
         id: model
-        //mpdConnector: mpdConnector
     }
 }

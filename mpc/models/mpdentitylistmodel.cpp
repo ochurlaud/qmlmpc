@@ -26,41 +26,9 @@ MpdEntityListModel::MpdEntityListModel(QObject *parent) :
     p_roles[Qt::UserRole+1] = "type";
 }
 
-void MpdEntityListModel::setEntityList(MpdEntityList list)
-{
-    beginResetModel();
-    m_list = list;
-    endResetModel();
-}
-
-int MpdEntityListModel::rowCount(const QModelIndex &parent) const
-{
-    return parent.isValid()?0:m_list.length();
-}
-
 QVariant MpdEntityListModel::data(const QModelIndex &index, int role) const
 {
-    if (index.row()<0 || index.row()>=m_list.length())
-        return QVariant();
-    switch(role) {
-    case Qt::UserRole:
-        return m_list.at(index.row())->getDescription();
-    case Qt::UserRole+1:
-        MpdEntity::Type type = m_list.at(index.row())->getType();
-        switch(type) {        
-        case MpdEntity::Artist:
-            return "Artist";
-        case MpdEntity::Directory:
-            return "Directory";
-        case MpdEntity::Song:
-            return "Song";
-        case MpdEntity::Playlist:
-            return "Playlist";
-        case MpdEntity::Album:
-            return "Album";
-        case MpdEntity::Status:
-            return "Status";
-        }
-    }
-    return QVariant();
+    Q_UNUSED(index)
+    Q_UNUSED(role)
+     return QVariant();
 }

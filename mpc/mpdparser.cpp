@@ -24,11 +24,16 @@ QList<QSharedPointer<MpdObject>> MpdParser::parseData(const QByteArray& data)
         if (firstKey.isEmpty()) {
             firstKey = key;
         // If we find the first key again, it means we start a new entity
-        // So we first deal with the previous entity
+        // So we first deal with the previous entity then we clear it (= initialization) to loop again
         } else if ((!firstKey.isEmpty() && key == firstKey)) {
             QSharedPointer<MpdObject> mpdObject = this->parseObject(firstKey, entityHash);
             objectList.append(mpdObject);
             entityHash.clear();
+        // If we find a key twice (that is not the first key), it means that we are in a group
+        // So we first deal with the previous entity. Do not loop as we want to keep the previous elements!
+        } else if (entityHash.contains(key)) {
+            QSharedPointer<MpdObject> mpdObject = this->parseObject(firstKey, entityHash);
+            objectList.append(mpdObject);
         }
         entityHash.insert(key, value);
     }

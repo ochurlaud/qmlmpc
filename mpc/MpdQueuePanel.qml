@@ -22,6 +22,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 Pane {
+    id: root
     Column {
 
         id: queueColumn
@@ -56,9 +57,10 @@ Pane {
         }
 
         PlaylistView {
+            id: queueView
             width: parent.width
-            height: parent.height - progressBar.height - buttonrow.height - playbackControls.height
-            Component.onCompleted: console.log(height)
+            height: queueColumn.height - progressBar.height - buttonrow.height - playbackControls.height - 4*queueColumn.spacing
+            Component.onCompleted: console.log("height: " + queueColumn.height)
         }
 
         //Future FEATURE
@@ -68,8 +70,9 @@ Pane {
             onEditingFinished:
         }*/
 
-        Row {
+        RowLayout {
             id: buttonrow
+            anchors.horizontalCenter: parent.horizontalCenter
             Button {
                 text: "Scroll to current song"
                 onClicked: queueView.positionViewAtIndex(mpdConnector.currentSongPos, ListView.Visible)
@@ -82,7 +85,7 @@ Pane {
 
         MpdPlaybackControls {
             id: playbackControls
-            width: 0.8* parent.width
+            width: 0.8 * parent.width
             anchors.horizontalCenter: parent.horizontalCenter
         }
     }

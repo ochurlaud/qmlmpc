@@ -37,6 +37,7 @@ class MpdConnector : public QObject
     // status properties
     Q_PROPERTY( bool repeating READ getRepeat NOTIFY statusChanged )
     Q_PROPERTY( bool shuffling READ getRandom NOTIFY statusChanged )
+    Q_PROPERTY( bool consuming READ getConsume NOTIFY statusChanged )
     Q_PROPERTY( bool playing READ isPlaying NOTIFY statusChanged )
     Q_PROPERTY( bool paused READ isPaused NOTIFY statusChanged )
     Q_PROPERTY( bool stopped READ isStopped NOTIFY statusChanged )
@@ -60,6 +61,7 @@ public:
 
     bool getRepeat() { return p_status->repeat(); }
     bool getRandom() { return p_status->random(); }
+    bool getConsume() { return p_status->consume(); }
     bool isPlaying() { return p_status->state() == MpdStatus::Play; }
     bool isPaused() { return p_status->state() == MpdStatus::Pause; }
     bool isStopped() { return p_status->state() == MpdStatus::Stop; }
@@ -94,6 +96,7 @@ public slots:
     void previous();
     void repeat(bool repeat);
     void random(bool random);
+    void consume(bool consume);
     void playSong(int songId);
     void removeSong( int songId);
     void clearQueue();
@@ -106,12 +109,14 @@ public slots:
     void playPlaylist(const QString& playlist);
 
     // Albums
-    void appendAlbum(const QString& artist, const QString& album);
+    void appendAlbum(const QString& artist, const QString& album, const bool playNow=false);
+    void insertAlbum(const QString& artist, const QString& album);
 
     // Songs
     void insertSong(const QString& path);
     void appendSong(const QString& path);
-    void addSongs(QStringList paths);
+    void insertSongs(const QStringList& paths);
+    void addSongs(const QStringList& paths);
     void prependSong(const QString& path);
     void moveSongUp(int songId);
     void moveSongDown(int songId);
@@ -134,6 +139,8 @@ private slots:
 /*    void playlistsReady();*/
     void playlistSongsReady();
     void songsToAppendReady();
+    void songsToInsertReady();
+    void songsToAppendReadyAndPlay();
 /*    void directoryListingReady();
     void artistListingReady();
     void albumListingReady();*/

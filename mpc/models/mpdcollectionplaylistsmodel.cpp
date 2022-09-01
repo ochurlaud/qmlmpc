@@ -1,7 +1,7 @@
 
-#include "mpdcollectionartistsmodel.h"
+#include "mpdcollectionplaylistsmodel.h"
 
-MpdCollectionArtistsModel::MpdCollectionArtistsModel(QObject *parent) :
+MpdCollectionPlaylistsModel::MpdCollectionPlaylistsModel(QObject *parent) :
     MpdEntityListModel(parent)
 {
     p_roles[Qt::UserRole] = "description";
@@ -9,10 +9,10 @@ MpdCollectionArtistsModel::MpdCollectionArtistsModel(QObject *parent) :
     p_roles[Qt::UserRole+2] = "path";
 }
 
-void MpdCollectionArtistsModel::setArtistList(QList<QSharedPointer<MpdArtist> > list)
+void MpdCollectionPlaylistsModel::setPlaylistList(QList<QSharedPointer<MpdPlaylist> > list)
 {
     beginResetModel();
-    m_list = QList<QSharedPointer<MpdArtist> >();
+    m_list = QList<QSharedPointer<MpdPlaylist> >();
     m_selectedIndices.clear();
     for (int i=0; i<list.length(); i++) {
         m_list.append(list.at(i));
@@ -23,7 +23,7 @@ void MpdCollectionArtistsModel::setArtistList(QList<QSharedPointer<MpdArtist> > 
 
 }
 
-bool MpdCollectionArtistsModel::isSelected(int index) const
+bool MpdCollectionPlaylistsModel::isSelected(int index) const
 {
     if (index >= 0 && m_selectedIndices.size() > index) {
         return m_selectedIndices.at(index);
@@ -32,7 +32,7 @@ bool MpdCollectionArtistsModel::isSelected(int index) const
     }
 }
 
-int MpdCollectionArtistsModel::getNumSelectedSongs() const
+int MpdCollectionPlaylistsModel::getNumSelectedSongs() const
 {
     int num = 0;
     for (int i=0; i<m_selectedIndices.length(); i++)
@@ -41,7 +41,7 @@ int MpdCollectionArtistsModel::getNumSelectedSongs() const
     return num;
 }
 
-int MpdCollectionArtistsModel::getNumSelectedDirectories() const
+int MpdCollectionPlaylistsModel::getNumSelectedDirectories() const
 {
     int num = 0;
     for (int i=0; i<m_selectedIndices.length(); i++)
@@ -50,7 +50,7 @@ int MpdCollectionArtistsModel::getNumSelectedDirectories() const
     return num;
 }
 
-QStringList MpdCollectionArtistsModel::getSelectedPaths() const
+QStringList MpdCollectionPlaylistsModel::getSelectedPaths() const
 {
     QStringList paths;
     for (int i=0; i<m_selectedIndices.length(); i++)
@@ -59,7 +59,7 @@ QStringList MpdCollectionArtistsModel::getSelectedPaths() const
     return paths;
 }
 
-QVariant MpdCollectionArtistsModel::data(const QModelIndex &index, int role) const
+QVariant MpdCollectionPlaylistsModel::data(const QModelIndex &index, int role) const
 {
     if (index.row()<0 || index.row()>=m_list.length())
          return QVariant();
@@ -86,55 +86,56 @@ QVariant MpdCollectionArtistsModel::data(const QModelIndex &index, int role) con
         break;
     }
     case Qt::UserRole+2:
-        return QVariant(m_list.at(index.row())->getPath());
+        return QVariant(m_list.at(index.row())->getName());
+    default:
+        return MpdEntityListModel::data(index, role);
     }
-    return MpdEntityListModel::data(index, role);
 }
 
-void MpdCollectionArtistsModel::toggleSelection(int index)
+void MpdCollectionPlaylistsModel::toggleSelection(int index)
 {
     m_selectedIndices[index] = !m_selectedIndices[index];
     emit selectionChanged();
 }
 
-void MpdCollectionArtistsModel::selectAll()
+void MpdCollectionPlaylistsModel::selectAll()
 {
     for (int i=0; i<m_selectedIndices.length(); i++)
         m_selectedIndices[i] = true;
     emit selectionChanged();
 }
 
-void MpdCollectionArtistsModel::deselectAll()
+void MpdCollectionPlaylistsModel::deselectAll()
 {
     for (int i=0; i<m_selectedIndices.length(); i++)
         m_selectedIndices[i] = false;
     emit selectionChanged();
 }
 
-int MpdCollectionArtistsModel::rowCount(const QModelIndex &parent) const
+int MpdCollectionPlaylistsModel::rowCount(const QModelIndex &parent) const
 {
     return parent.isValid()?0:m_list.length();
 }
 
-void MpdCollectionArtistsModel::queryContent()
+void MpdCollectionPlaylistsModel::queryContent()
 {
-    this->setArtistList(QList<QSharedPointer<MpdArtist> >());
-    MpdRequest *request = m_mpdConnector->getConnection2()->listArtists();
-    connect(request, &MpdRequest::resultReady, this, &MpdCollectionArtistsModel::contentReady);
+    this->setPlaylistList(QList<QSharedPointer<MpdPlaylist> >());
+    MpdRequest *request = m_mpdConnector->getConnection2()->listPlaylists();
+    connect(request, &MpdRequest::resultReady, this, &MpdCollectionPlaylistsModel::contentReady);
 }
 
-void MpdCollectionArtistsModel::contentReady()
+void MpdCollectionPlaylistsModel::contentReady()
 {
        MpdRequest *request = qobject_cast<MpdRequest*>(sender());
        if (request->succesfull()) {
            QList<QSharedPointer<MpdObject>> response = request->getResponse();
-           QList<QSharedPointer<MpdArtist> > artistList;
+           QList<QSharedPointer<MpdPlaylist> > playlistList;
            for (auto& obj : response) {
-               artistList.append(obj.dynamicCast<MpdArtist>());
+               playlistList.append(obj.dynamicCast<MpdPlaylist>());
            }
-           this->setArtistList(artistList);
+           this->setPlaylistList(playlistList);
        } else {
-           qDebug("listArtists got an ACK: '%s'", qPrintable(request->getAck()));
+           qDebug("listPlaylists got an ACK: '%s'", qPrintable(request->getAck()));
        }
        request->deleteLater();
    }

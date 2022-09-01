@@ -43,7 +43,11 @@ Pane {
                             }
                             function onClicked(mouse) {
                                 if (mouse.button === Qt.LeftButton) {
-                                    root.itemClicked(type.toLowerCase(), path)
+                                    if (type.toLowerCase() === "artist") {
+                                        root.itemClicked("album", path)
+                                    } else {
+                                        root.itemClicked("song", path)
+                                    }
                                 } else if (mouse.button === Qt.RightButton) {
                                     menu(path, type)
                                 }
@@ -54,7 +58,11 @@ Pane {
                                 }
                             }
                             function onDoubleClicked(mouse) {
-                                root.itemClicked(type.toLowerCase(), path)
+                                if (type.toLowerCase() === "artist") {
+                                    root.itemClicked("album", path)
+                                } else {
+                                    root.itemClicked("song", path)
+                                }
                             }
                         }
                         Menu {
@@ -66,11 +74,14 @@ Pane {
                              }
                              MenuItem {
                                  text: qsTr("Add next")
-                                 onTriggered: mpdConnector.moveSongAfterCurrent(songId)
+                                 onTriggered: mpdConnector.insertSong(path)
                              }
                              MenuItem {
                                  text: qsTr("Add and replace")
-                                 onTriggered: mpdConnector.moveSongAfterCurrent(songId)
+                                 onTriggered: {
+                                     mpdConnector.clearQueue()
+                                     mpdConnector.appendSong(path)
+                                 }
                              }
                              MenuItem {
                                  text: qsTr("Add, replace and play")
@@ -82,7 +93,11 @@ Pane {
                              }
                              MenuItem {
                                  text: qsTr("Go to the artist")
-                                 onTriggered: mpdConnector.moveSongAfterCurrent(songId)
+                                 onTriggered: root.itemClicked("album", artist)
+                             }
+                             MenuItem {
+                                 text: qsTr("Go to the album")
+                                 onTriggered: root.itemClicked("song", album+'@'+artist)
                              }
                         }
 
@@ -94,6 +109,7 @@ Pane {
 
                         Text {
                             text: description
+                            color: Material.foreground
                             elide: Text.ElideRight
                             verticalAlignment: Text.AlignVCenter
                             anchors { fill: parent; margins: 3; leftMargin: 22 }
@@ -103,7 +119,6 @@ Pane {
             }
         }
     }
-
 
     Component.onCompleted: {
         loadModel()

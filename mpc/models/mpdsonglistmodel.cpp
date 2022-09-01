@@ -37,6 +37,7 @@ QVariant MpdSongListModel::data(const QModelIndex &index, int role) const
 {
     if (index.row()<0 || index.row()>=m_list.length())
         return QVariant();
+
     switch(role) {
     case Qt::UserRole:
         return m_list.at(index.row())->getDescription();
