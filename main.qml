@@ -10,6 +10,9 @@ ApplicationWindow {
     id: appwindow
     visible: true
 
+    width: 480
+    height: 620
+
     property MpdSelectedSong selectedSong: selectedSong
     property string toolbarTitle: "QMLMPC - " + mpdConnector.connection.connectedServer
 
@@ -78,7 +81,6 @@ ApplicationWindow {
             mainStack.pop()
         }
     }
-
 
     Component {
         id: mainToolbarTitle

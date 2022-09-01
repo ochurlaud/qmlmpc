@@ -17,18 +17,14 @@
  * along with qmlmpc. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import QtQuick 2.1
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
 
-import ".." // import Style.qml
-
-Rectangle {
-    width: 4*Style.first8ColumnsWidth+4*Style.last4ColumnsWidth
-    height: 7*Style.rowHeight
-    color: "black"
-
+Pane {
+    anchors.fill: parent
     property alias searchText: searchInputField.text
     property string searchScope: "any" // any, artist, title (https://mpd.readthedocs.io/en/latest/protocol.html#filter-syntax)
-    property string searchScopeText: "Any" // what the button should say
 
     function doSearch() {
         if (searchText && searchText.length >= 3)
@@ -39,101 +35,35 @@ Rectangle {
 
     Column {
         anchors.fill: parent
-        Item {
-            height: Style.rowHeight/2
+        RowLayout {
             width: parent.width
-            MpdText {
-                id: headerText
-                text: "Search:"
-                height: parent.height
-                width: Style.rowHeight
+            TextField {
+                id: searchInputField
+                Layout.fillWidth: true
+                placeholderText: "search here..."
             }
-            Rectangle {
-                height: 24
-                anchors { left: headerText.right; right: searchOptions.left; verticalCenter: parent.verticalCenter }
-                radius: 3
-                color: "white"
-                TextInput {
-                    id: searchInputField
-                    anchors { fill: parent; margins: 2 }
-                    text: searchText
-                }
-               /* MouseArea {
-                    anchors.fill: parent
-                    onClicked: prompt("Enter search query:", searchInputField)
-                }*/
-            }
-            MpdButton {
+            ComboBox {
                 id: searchOptions
-                width: 2*Style.last4ColumnsWidth
-                height: Style.rowHeight/2
-                anchors.right: parent.right
-                text: searchScopeText
-                onClicked: active = !active
-                Column {
-                    id: searchScopeDropdown
+                textRole: "text"
+                valueRole: "value"
 
-                    y: parent.height
-                    visible: searchOptions.active
-
-                    Repeater {
-                        model: ["any:Any", "artist:Artist", "title:Title"]
-                        delegate: Rectangle {
-                            width: 2*Style.last4ColumnsWidth
-                            height: Style.rowHeight/2
-                            color: "#444"
-                            border { width: 1; color: "black" }
-                            property string scope: modelData.split(":")[0]
-                            property string text: modelData.split(":")[1]
-                            Text {
-                                text: parent.text
-                                color: "white"
-                                anchors { left: parent.left; leftMargin: 26; verticalCenter: parent.verticalCenter }
-                            }
-                            MouseArea {
-                                anchors.fill: parent
-                                onClicked: {
-                                    searchScope = scope
-                                    searchScopeText = text
-                                    searchOptions.active = false // hide this dropdown
-                                }
-                            }
-                        }
-                    }
+                model: ListModel {
+                    id: model
+                    ListElement { value: "any"; text: "Any" }
+                    ListElement { value: "artist"; text: "Artist" }
+                    ListElement { value: "title"; text: "Title" }
+                }
+                onActivated: {
+                    searchScope = currentValue
                 }
             }
         }
 
-        Rectangle {
-            z: -1 // hide behind searchScopeDropdown
+        MpdCollectionSongsPanel {
+            id: songlistView
             width: parent.width
-            height: parent.height-1.5*Style.rowHeight
-            color: "white"
-            MpdSongListView {
-                id: songlistView
-                anchors.fill: parent
-                model: mpdConnector.searchResultModel
-                multiSelect: true
-            }
-        }
-
-        Row {
-            MpdButton {
-                width: 4*Style.first8ColumnsWidth
-                text: "Append selected "+songlistView.numSelected+" songs"
-                enabled: songlistView.numSelected > 0
-                onClicked: mpdConnector.addSongs(songlistView.getSelectedPaths())
-            }
-            MpdButton {
-                width: 2*Style.last4ColumnsWidth
-                text: "Select all"
-                onClicked: songlistView.selectAll()
-            }
-            MpdButton {
-                width: 2*Style.last4ColumnsWidth
-                text: "Select none"
-                onClicked: songlistView.deselectAll()
-            }
+            height: parent.height - searchOptions.height
+            model: mpdConnector.searchResultModel
         }
     }
 }

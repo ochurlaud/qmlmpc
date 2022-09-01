@@ -1,17 +1,10 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
-        <file>mpc/MpdButton.qml</file>
         <file>mpc/MpdCollectionPanel.qml</file>
         <file>mpc/MpdQueuePanel.qml</file>
         <file>mpc/MpdSearchPanel.qml</file>
         <file>mpc/MpdSelectedSong.qml</file>
-        <file>mpc/MpdSongListView.js</file>
-        <file>mpc/MpdSongListView.qml</file>
-        <file>mpc/MpdText.qml</file>
-        <file>widgets/TddListView.qml</file>
-        <file>Style.qml</file>
-        <file>qmldir</file>
         <file>mpc/PlaylistView.qml</file>
         <file>mpc/SettingsPanel.qml</file>
         <file>mpc/MpdPlaybackControls.qml</file>
