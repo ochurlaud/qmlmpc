@@ -22,7 +22,6 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 Pane {
-    anchors.fill: parent
     property alias searchText: searchInputField.text
     property string searchScope: "any" // any, artist, title (https://mpd.readthedocs.io/en/latest/protocol.html#filter-syntax)
 

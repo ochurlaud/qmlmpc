@@ -1,15 +1,17 @@
-import QtQuick 2.0
+import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
 ToolBar {
     property string buttonView: ""
     RowLayout {
-        width: parent.width
+        anchors.fill : parent
+
         ToolButton {
             id: artistButton
             icon.name:"view-media-artist"
-            width: parent.width / parent.children.length
+            Layout.fillWidth: true
+            Layout.fillHeight: true
             checked: buttonView == "artist"
             onClicked:
                 buttonView = "artist"
@@ -17,7 +19,8 @@ ToolBar {
         ToolButton {
             id: albumButton
             icon.name: "view-media-album-cover"
-            width: parent.width / parent.children.length
+            Layout.fillWidth: true
+            Layout.fillHeight: true
             checked: buttonView == "album"
             onClicked:
                 buttonView = "album"
@@ -35,7 +38,8 @@ ToolBar {
         ToolButton {
             id: playlistButton
             icon.name: "view-media-playlist"
-            width: parent.width / parent.children.length
+            Layout.fillWidth: true
+            Layout.fillHeight: true
             checked: buttonView == "playlist"
             onClicked:
                 buttonView = "playlist"
@@ -43,7 +47,8 @@ ToolBar {
         ToolButton {
             id: queueButton
             icon.name:"media-playlist-play"
-            width: parent.width / parent.children.length
+            Layout.fillWidth: true
+            Layout.fillHeight: true
             checked: buttonView == "queue"
             onClicked:
                 buttonView = "queue"
